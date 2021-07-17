@@ -20,7 +20,6 @@
   - [confluence](https://www.atlassian.com/software/confluence)
   - [sourcetree](https://www.sourcetreeapp.com/)：Simplicity and power in a beautiful Git GUI
   - [asana](https://asana.com/)
-  - [bamboo](https://www.atlassian.com/software/bamboo):the choice of professional teams for continuous integration, deployment, and delivery Atlassian的CI/CD服务器解决方案，很多特性和Jenkins类似。它们都是流行的DevOps工具，帮助用户自动化发布流水线，从build到部署。但是，Jenkins是开源的，Bamboo是收费的。
 * [Jfrog](https://jfrog.com)
 * [drawio](https://github.com/jgraph/drawio):Source to www.draw.io
 * [ZenHub](https://www.zenhub.com):Easier than Jira. More powerful than Trello. Built for developers.

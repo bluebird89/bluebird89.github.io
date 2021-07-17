@@ -114,6 +114,7 @@ Linux是基于Unix的，属于Unix类，Uinx操作系统支持多用户、多任
 * [AntiX](https://antixlinux.com/)
 * [TurnKey Linux](http://www.turnkeylinux.org/)  Deploy open source apps on VM or the clouds
 * [Qubes OS](https://www.qubes-os.org/ "Qubes OS")
+* [CutefishOS](https://cutefishos.com/)
 
 ![distro-family-tree](../_static/distro-family-tree.png "Optional title")
 
@@ -361,7 +362,13 @@ sudo apt install kinfocenter
 * 初始：BIOS->MBR->引导加载程序->内核
   - 计算机电源通电后
   - 开机自检(Power-On-Self-Test, POST):自动从主板 BIOS(Basic Input/Output System)读取其中所存储程序（直接连接在主板上的硬件(硬盘，网络接口，键盘，串口，并口)）进行开机自检，对硬件进行检测和初始化
-  - 启动存储设备中读取起始 512 bytes 的磁盘中的第一个分区|MBR(Master Boot Record) 主引导记录，被读入到一个固定的内存区域并执行。告诉电脑从该设备的某一个分区(partition)来装载引导加载程序(boot loader)。boot 程序将自身复制到高位地址的内存从而为操作系统释放低位地址的内存。Boot loader储存有操作系统(OS)的相关信息，比如操作系统名称，操作系统内核 (内核)所在位置等。常用的boot loader有GRUB和LILO
+  - 启动存储设备中读取起始 512 bytes 的磁盘中的第一个分区|MBR(Master Boot Record) 主引导记录，被读入到一个固定的内存区域并执行。告诉电脑从该设备的某一个分区(partition)来装载引导加载程序(boot loader)。boot 程序将自身复制到高位地址的内存从而为操作系统释放低位地址的内存。Boot loader储存有操作系统(OS)的相关信息，比如操作系统名称，操作系统内核 (内核)所在位置等。常用 boot loader有GRUB和LILO
+- 典型 Linux 启动 需要 FS：bootfs + rootfs
+    + bootfs（boot file system）主要包含 bootloader 和 kernel
+		+ bootloader 主要是引导加载 kernel，当 boot 成功后 kernel 被加载到内存中后 bootfs 被 umount  
+	+ rootfs（root file system）包含典型 Linux 系统中的/dev，/proc，/bin，/etc 等标准目录和文件。
+	+ 对于不同 linux 发行版，bootfs 基本是一致的。但 rootfs 会有差别，因此不同的发行版可以公用 bootfs.比如以前的 Ubuntu 使用 UpStart 系统管理服务，apt 管理软件包；而 CentOS 使用 systemd 和 yum ，但是这些都是在用户空间上的区别，Linux 内核的差别不大。
++ 典型 Linux 在启动后，首先将 rootfs 设置为 readonly，进行一系列检查，然后将其切换为 “readwrite”供用户使用。
   - boot 程序读取启动设备的根目录。boot 程序要理解文件系统和目录格式。然后 boot 程序被调入内核，把控制权移交给内核。直到这里，boot 完成了它的工作。系统内核开始运行
   - boot loader 会加载内核(kernel)。内核实际上是一个用来操作计算机的程序，它是计算机操作系统的内核，主要的任务是管理计算机的硬件资源，充当软件和硬件的接口。操作系统上的任何操作都要通过内核传达给硬件
   - 内核启动代码是使用汇编语言完成的，主要包括创建内核堆栈、识别 CPU 类型、计算内存、禁用中断、启动内存管理单元等，然后调用 C 语言的 main 函数执行操作系统部分

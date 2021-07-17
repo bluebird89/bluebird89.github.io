@@ -410,6 +410,14 @@ ab -n 100 -H “Cookie: Key1=Value1; Key2=Value2” http://test.com/
 	* 从用例的角度看，回归用例集一定程度是代表“回归什么”。没有这个基础，回归测试将是一种无序的、难以评估的方式进行。
 	* 持续保持回归用例集有效，添加新用例、剔除无效用例等用例集的维护工作很重要，尤其是探索性测试过程中产生的有价值的新用例怎么加入回归用例集。
 
+## Mock
+
+- 工具
+- [Mock](https://github.com/nuysoft/Mock) A simulation data generator <http://mockjs.com>
+- [easy-mock](https://github.com/easy-mock/easy-mock):A persistent service that generates mock data quickly and provids visualization view. <https://easy-mock.com>
+- [json-server](https://github.com/typicode/json-server):Get a full fake REST API with zero coding in less than 30 seconds (seriously)
+- [nock](https://github.com/nock/nock):HTTP server mocking and expectations library for Node.js
+
 ## Bug
 
 ### [Bug Report](https://mp.weixin.qq.com/s/OVqTsk6OJ_xi5Q4iWtKkUg)

@@ -125,6 +125,7 @@
   - CruiseControl：一个针对持续构建程序(项目持续集成)的框架，它包括一个email通知的插件，Ant和各种各样的CVS工具。提供了一个Web接口，可随时查看当前的编译状况和历史状况。
   - Integrity：Integrity 是 Ruby 开发的持续集成服务器。
   - Gump：Gump 是 Apache 的整合工具。它以 Python 写成、完全支持 Apache Ant、Apache Maven 等等软件组建工具
+  - [bamboo](https://www.atlassian.com/software/bamboo):the choice of professional teams for continuous integration, deployment, and delivery Atlassian的CI/CD服务器解决方案，很多特性和Jenkins类似。它们都是流行的DevOps工具，帮助用户自动化发布流水线，从build到部署。但是，Jenkins是开源的，Bamboo是收费的。
 * 度量
   - 代码度量
   - 流水线度量

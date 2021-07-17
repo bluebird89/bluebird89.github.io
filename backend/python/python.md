@@ -13,7 +13,6 @@ The Python programming language, Guido van Rossum 在1989年圣诞节期间，�
 
 ## 版本
 
-
 ### Python2
 
 * 第一个版本一直延续到Python2.7，默认编码 ASCII。
@@ -27,6 +26,68 @@ The Python programming language, Guido van Rossum 在1989年圣诞节期间，�
 * 文本字符全部用 str 类型表示，str 能表示 Unicode 字符集中所有字符
 * 二进制字节数据用一种全新的数据类型，用 bytes 来表示，Python2中也有bytes类型，但那只不过是str的一个别名。在字符引号前加‘b’，明确表示这是一个 bytes 类型的对象，实际上就是一组二进制字节序列组成的数据，bytes 类型可以是 ASCII范围内的字符和其它十六进制形式的字符数据，但不能用中文等非ASCII字符表示。
 * bytes 类型提供的操作和 str 一样，支持分片、索引、基本数值运算等操作。但是 str 与 bytes 类型的数据不能执行 + 操作，尽管在python2中是可行的。
+
+### 编码
+
+字符与字节转换 *区分字符与字节*
+
+* Python 3版本中，字符串是以Unicode编码的
+* 把Unicode编码转化为“可变长编码”的UTF-8编码。UTF-8编码把一个Unicode字符根据不同的数字大小编码成1-6个字节，常用的英文字母被编码成1个字节，汉字通常是3个字节，只有很生僻的字符才会被编码成4-6个字节。如果你要传输的文本包含大量英文字符，用UTF-8编码就能节省空间
+* 单个字符的编码，Python提供了ord()函数获取字符的整数表示，chr()函数把编码转换为对应的字符(单字符与码的转换)
+* 字符串类型是str，在内存中以Unicode表示，一个字符对应若干个字节。如果要在网络上传输，或者保存到磁盘上，就需要把str变为以字节为单位的bytes。
+* bytes类型的数据用带b前缀的单引号或双引号表示：'ABC'和b'ABC'，前者是str，后者虽然内容显示得和前者一样，但bytes的每个字符都只占用一个字节
+* 纯英文的str可以用ASCII编码为bytes，内容是一样的，含有中文的str可以用UTF-8编码为bytes。含有中文的str无法用ASCII编码，因为中文编码的范围超过了ASCII编码的范围，Python会报错。
+* 在bytes中，无法显示为ASCII字符的字节，用\x##显示。
+* 从网络或磁盘上读取了字节流，那么读到的数据就是bytes。要把bytes变为str，就需要用decode()方法
+* bytes中包含无法解码的字节，decode()方法会报错
+* 如果bytes中只有一小部分无效的字节，可以传入errors='ignore'忽略错误的字节
+* len()函数计算的是str的字符数，如果换成bytes，len()函数就计算字节数
+* 遇到str和bytes的互相转换。为了避免乱码问题，应当始终坚持使用UTF-8编码对str和bytes进行转换。
+* `#!/usr/bin/env python3` 告诉Linux/OS X系统，这是一个Python可执行程序，Windows系统会忽略这个注释
+* 由于Python源代码也是一个文本文件，所以，当你的源代码中包含中文的时候，在保存源代码时，就需要务必指定保存为UTF-8编码。`# -*- coding: utf-8 -*-`当Python解释器读取源代码时，为了让它按UTF-8编码读取，申明了UTF-8编码并不意味着你的.py文件就是UTF-8编码的，必须并且要确保文本编辑器正在使用UTF-8 without BOM编码
+* 格式化输出：%运算符就是用来格式化字符串的。在字符串内部，有几个%?占位符，后面就跟几个变量或者值，顺序要对应好。如果只有一个%?，括号可以省略。格式化整数和浮点数还可以指定是否补0和整数与小数的位数
+  - %s表示用字符串替换
+  - %d表示用整数替换
+  - %f    浮点数
+  - %x    十六进制整数
+  - 不太确定应该用什么，%s永远起作用，它会把任何数据类型转换为字符串
+  - 字符串里面的%是一个普通字符怎么办？这个时候就需要转义，用`%%`来表示一个%
+* 另一种格式化字符串的方法是使用字符串的format()方法，它会用传入的参数依次替换字符串内的占位符{0}、{1}……
+
+```python
+ord('A')
+ord('中')
+chr(66)
+chr(25991)
+'\u4e2d\u6587' # '中文'
+x = b'ABC'
+'ABC'.encode('ascii')   # b'ABC'
+'中文'.encode('utf-8') # b'\xe4\xb8\xad\xe6\x96\x87'
+
+b'ABC'.decode('ascii')  # 'ABC'
+b'\xe4\xb8\xad\xe6\x96\x87'.decode('utf-8') #  '中文'
+b'\xe4\xb8\xad\xff'.decode('utf-8', errors='ignore') # '中'
+
+len('ABC') # 3
+len('中文') # 2
+
+len(b'ABC') # 3
+len(b'\xe4\xb8\xad\xe6\x96\x87') # 6
+len('中文'.encode('utf-8')) # 6
+
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+'Hi, %s, you have $%d.' % ('Michael', 1000000)
+print('%2d-%02d' % (3, 1)) # 3-01
+print('%.2f' % 3.1415926) # 3.14
+
+'Age: %s. Gender: %s' % (25, True) # 'Age: 25. Gender: True'
+
+'growth rate: %d %%' % 7 # 'growth rate: 7 %'
+
+'Hello, {0}, 成绩提升了 {1:.1f}%'.format('小明', 17.125)  # 'Hello, 小明, 成绩提升了 17.1%'
+```
 
 ## 解释器
 
@@ -470,97 +531,9 @@ print('hello,', name)
 + 数学意义上的无序和无重复元素的集合，因此，两个set可以做数学意义上的交集、并集
 + set和dict的唯一区别仅在于没有存储对应的value，但是，set的原理和dict一样，所以，同样不可以放入可变对象，因为无法判断两个可变对象是否相等，也就无法保证set内部“不会有重复元素”。
 
-### 变量
-
-  - 不仅可以是数字，还可以是任意数据类型
-  - 必须是大小写英文、数字和_的组合，且不能用数字开头
-  - 等号=是赋值语句，可以把任意数据类型赋值给变量，同一个变量可以反复赋值，而且可以是不同类型的变量
-  - 变量本身类型不固定的语言称之为动态语言，与之对应的是静态语言。静态语言在定义变量时必须指定变量类型，如果赋值的时候类型不匹配，就会报错。例如Java是静态语言
-  - 变量创建过程：在内存中创建了一个'ABC'的字符串；在内存中创建了一个名为a的变量，并把它指向'ABC'。
-  - 深浅拷贝
-* *可变对象与不可变对象* （值操作与引用操作）
-  - a是变量，而'abc'才是字符串对象！有些时候，经常说，对象a的内容是'abc'，但其实是指，a本身是一个变量，它指向的对象的内容才是'abc'
-  - replace方法创建了一个新字符串'Abc'并返回
-  - 对于不变对象来说，调用对象自身的任意方法，也不会改变该对象自身的内容。相反，这些方法会创建新的对象并返回，这样，就保证了不可变对象本身永远是不可变的。
-  - 因为不变对象一旦创建，对象内部的数据就不能修改，这样就减少了由于修改数据导致的错误。此外，由于对象不变，多任务环境下同时读取对象不需要加锁，同时读一点问题都没有。我们在编写程序时，如果可以设计一个不变对象，那就尽量设计成不变对象。
-  
-### 常量
-
-用全部大写的变量名表示常量。不能变的变量。事实上PI仍然是一个变量，Python根本没有任何机制保证PI不会被改变，所以，用全部大写的变量名表示常量只是一个习惯上的用法
-
-```python
-print('I\'m ok.')
-print('I\'m learning\nPython.')
-print('\\\n\\')
-print(r'\\\t\\')
-print('''line1
-line2
-line3''')
-print(r'''hello,\n
-world''')
-# 字符串拼接
-a, b = 'hello', ' world'
-a + b
-print(a, b)
-print('hello''world')
-print('%s %s' % ('hello', 'world'))
-print('-'.join(['aa', 'bb', 'cc']))
-f'{a} {b}'
-a * 3
-
-True
-3 > 2
-True and True
-True or False
-bool(datetime.time(0, 0)) == False
-
-5 > 3 or 1 > 3
-not 1 > 2
-int('12345', base=8) # 5349
-int('12345', 16) # 74565
-
-# a = 4
-a = 2 ** 2
-
-# list
-classmates = ['Michael', 'Bob', 'Tracy']
-classmates[0] #  'Michael'  获取元素
-classmates[-1] # 'Tracy'
-classmates.append('Adam')  # ['Michael', 'Bob', 'Tracy', 'Adam']
-classmates.insert(1, 'Jack') # ['Michael', 'Jack', 'Bob', 'Tracy', 'Adam']
-classmates.pop() # 'Adam'   删除list末尾的元素
-classmates.pop(1)  # 'Jack' 删除指定索引
-classmates[1] = 'Sarah' # 元素赋值
-
-s = ['python', 'java', ['asp', 'php'], 'scheme']
-len(s) # 4
-s[2][1]
-L = []
-
-d = {'Michael': 95, 'Bob': 75, 'Tracy': 85}
-d['Adam'] = 67 # 添加
-'Thomas' in d # 判断是否存在
-d.get('Thomas', -1) # 添加默认值
-d.pop('Bob') # 删除
-
-s = set([1, 2, 3])
-s.add(4)
-s.remove(4)
-s1 = set([1, 2, 3])
-s2 = set([2, 3, 4])
-s1 & s2
-s1 | s2
-
-a = 'ABC'
-b = a.replace('A', 'a')
-a # 'ABC'
-b # 'aBC'
-```
-
-### 切片（slice）
+##### 切片（slice）
 
 * 取一个list或tuple的部分元素.倒数第一个元素的索引是-1 L[begin:end:foot].还支持tuple str
-
 * 迭代器Iterator：可以被next()函数调用并不断返回下一个值的对象称为迭代器：Iterator。
   - Iterator对象表示的是一个数据流，Iterator对象可以被next()函数调用并不断返回下一个数据，直到没有数据时抛出StopIteration错误。可以把这个数据流看做是一个有序序列，但我们却不能提前知道序列的长度，只能不断通过next()函数实现按需计算下一个数据，所以Iterator的计算是惰性的，只有在需要返回下一个数据时它才会计算。
 * 可迭代对象Iterable：可以直接作用于for循环的对象统称为可迭代对象：一类是集合数据类型，如list、tuple、dict、set、str等；一类是generator，包括生成器和带yield的generator function。
@@ -568,11 +541,11 @@ b # 'aBC'
 * 遍历迭代 Iteration：通过for循环来遍历这个list或tuple
 	* 只要是可迭代对象(list、tuple、dict、set、str)，无论有无下标，都可以迭代.enumerate函数可以把一个list变成索引-元素对，这样就可以在for循环中同时迭代索引和元素本身
 
-#### 列表生成式 List Comprehensions
+##### 列表生成式 List Comprehensions
 
 * 内置的非常简单却强大的可以用来创建list的生成式.运用列表生成式，可以快速生成list，可以通过一个list推导出另一个list
 
-#### 生成器 generator
+##### 生成器 generator
 
 * 通过列表生成式，可以直接创建一个列表。但是，受到内存限制，列表容量肯定是有限的。而且，创建一个包含100万个元素的列表，不仅占用很大的存储空间，如果我们仅仅需要访问前面几个元素，那后面绝大多数元素占用的空间都白白浪费了。是否可以在循环的过程中不断推算出后续的元素.
 - generator保存的是算法，每次调用next(g)，就计算出g的下一个元素的值，直到计算到最后一个元素，没有更多的元素时，抛出StopIteration的错误。
@@ -660,78 +633,103 @@ isinstance([], Iterator) # False
 isinstance(iter([]), Iterator) # True
 ```
 
+### 变量
+
+  - 不仅可以是数字，还可以是任意数据类型
+  - 必须是大小写英文、数字和_的组合，且不能用数字开头
+  - 等号=是赋值语句，可以把任意数据类型赋值给变量，同一个变量可以反复赋值，而且可以是不同类型的变量
+  - 变量本身类型不固定的语言称之为动态语言，与之对应的是静态语言。静态语言在定义变量时必须指定变量类型，如果赋值的时候类型不匹配，就会报错。例如Java是静态语言
+  - 变量创建过程：在内存中创建了一个'ABC'的字符串；在内存中创建了一个名为a的变量，并把它指向'ABC'。
+  - 深浅拷贝
+* *可变对象与不可变对象* （值操作与引用操作）
+  - a是变量，而'abc'才是字符串对象！有些时候，经常说，对象a的内容是'abc'，但其实是指，a本身是一个变量，它指向的对象的内容才是'abc'
+  - replace方法创建了一个新字符串'Abc'并返回
+  - 对于不变对象来说，调用对象自身的任意方法，也不会改变该对象自身的内容。相反，这些方法会创建新的对象并返回，这样，就保证了不可变对象本身永远是不可变的。
+  - 因为不变对象一旦创建，对象内部的数据就不能修改，这样就减少了由于修改数据导致的错误。此外，由于对象不变，多任务环境下同时读取对象不需要加锁，同时读一点问题都没有。我们在编写程序时，如果可以设计一个不变对象，那就尽量设计成不变对象。
+  
+### 常量
+
+用全部大写的变量名表示常量。不能变的变量。事实上PI仍然是一个变量，Python根本没有任何机制保证PI不会被改变，所以，用全部大写的变量名表示常量只是一个习惯上的用法
+
+```python
+print('I\'m ok.')
+print('I\'m learning\nPython.')
+print('\\\n\\')
+print(r'\\\t\\')
+print('''line1
+line2
+line3''')
+print(r'''hello,\n
+world''')
+# 字符串拼接
+a, b = 'hello', ' world'
+a + b
+print(a, b)
+print('hello''world')
+print('%s %s' % ('hello', 'world'))
+print('-'.join(['aa', 'bb', 'cc']))
+f'{a} {b}'
+a * 3
+
+True
+3 > 2
+True and True
+True or False
+bool(datetime.time(0, 0)) == False
+
+5 > 3 or 1 > 3
+not 1 > 2
+int('12345', base=8) # 5349
+int('12345', 16) # 74565
+
+# a = 4
+a = 2 ** 2
+
+# list
+classmates = ['Michael', 'Bob', 'Tracy']
+classmates[0] #  'Michael'  获取元素
+classmates[-1] # 'Tracy'
+classmates.append('Adam')  # ['Michael', 'Bob', 'Tracy', 'Adam']
+classmates.insert(1, 'Jack') # ['Michael', 'Jack', 'Bob', 'Tracy', 'Adam']
+classmates.pop() # 'Adam'   删除list末尾的元素
+classmates.pop(1)  # 'Jack' 删除指定索引
+classmates[1] = 'Sarah' # 元素赋值
+
+s = ['python', 'java', ['asp', 'php'], 'scheme']
+len(s) # 4
+s[2][1]
+L = []
+
+d = {'Michael': 95, 'Bob': 75, 'Tracy': 85}
+d['Adam'] = 67 # 添加
+'Thomas' in d # 判断是否存在
+d.get('Thomas', -1) # 添加默认值
+d.pop('Bob') # 删除
+
+s = set([1, 2, 3])
+s.add(4)
+s.remove(4)
+s1 = set([1, 2, 3])
+s2 = set([2, 3, 4])
+s1 & s2
+s1 | s2
+
+a = 'ABC'
+b = a.replace('A', 'a')
+a # 'ABC'
+b # 'aBC'
+```
+
 ### 运算符
 
-* /除法计算结果是浮点数，即使是两个整数恰好整除，结果也是浮点数
-* //，称为地板除，两个整数的除法仍然是整数
-* 余数运算，可以得到两个整数相除的余数
+* `/`除法计算结果是浮点数，即使是两个整数恰好整除，结果也是浮点数
+* `//` 地板除，两个整数的除法仍然是整数
+* 余数可以得到两个整数相除的余数
 
 ```python
 10 / 3
 10 // 3
 10 % 3
-```
-
-### 编码
-
-字符与字节的转换 *区分字符与字节*
-
-* Python 3版本中，字符串是以Unicode编码的
-* 把Unicode编码转化为“可变长编码”的UTF-8编码。UTF-8编码把一个Unicode字符根据不同的数字大小编码成1-6个字节，常用的英文字母被编码成1个字节，汉字通常是3个字节，只有很生僻的字符才会被编码成4-6个字节。如果你要传输的文本包含大量英文字符，用UTF-8编码就能节省空间
-* 单个字符的编码，Python提供了ord()函数获取字符的整数表示，chr()函数把编码转换为对应的字符(单字符与码的转换)
-* 字符串类型是str，在内存中以Unicode表示，一个字符对应若干个字节。如果要在网络上传输，或者保存到磁盘上，就需要把str变为以字节为单位的bytes。
-* bytes类型的数据用带b前缀的单引号或双引号表示：'ABC'和b'ABC'，前者是str，后者虽然内容显示得和前者一样，但bytes的每个字符都只占用一个字节
-* 纯英文的str可以用ASCII编码为bytes，内容是一样的，含有中文的str可以用UTF-8编码为bytes。含有中文的str无法用ASCII编码，因为中文编码的范围超过了ASCII编码的范围，Python会报错。
-* 在bytes中，无法显示为ASCII字符的字节，用\x##显示。
-* 从网络或磁盘上读取了字节流，那么读到的数据就是bytes。要把bytes变为str，就需要用decode()方法
-* bytes中包含无法解码的字节，decode()方法会报错
-* 如果bytes中只有一小部分无效的字节，可以传入errors='ignore'忽略错误的字节
-* len()函数计算的是str的字符数，如果换成bytes，len()函数就计算字节数
-* 遇到str和bytes的互相转换。为了避免乱码问题，应当始终坚持使用UTF-8编码对str和bytes进行转换。
-* `#!/usr/bin/env python3` 告诉Linux/OS X系统，这是一个Python可执行程序，Windows系统会忽略这个注释
-* 由于Python源代码也是一个文本文件，所以，当你的源代码中包含中文的时候，在保存源代码时，就需要务必指定保存为UTF-8编码。`# -*- coding: utf-8 -*-`当Python解释器读取源代码时，为了让它按UTF-8编码读取，申明了UTF-8编码并不意味着你的.py文件就是UTF-8编码的，必须并且要确保文本编辑器正在使用UTF-8 without BOM编码
-* 格式化输出：%运算符就是用来格式化字符串的。在字符串内部，有几个%?占位符，后面就跟几个变量或者值，顺序要对应好。如果只有一个%?，括号可以省略。格式化整数和浮点数还可以指定是否补0和整数与小数的位数
-  - %s表示用字符串替换
-  - %d表示用整数替换
-  - %f    浮点数
-  - %x    十六进制整数
-  - 不太确定应该用什么，%s永远起作用，它会把任何数据类型转换为字符串
-  - 字符串里面的%是一个普通字符怎么办？这个时候就需要转义，用`%%`来表示一个%
-* 另一种格式化字符串的方法是使用字符串的format()方法，它会用传入的参数依次替换字符串内的占位符{0}、{1}……
-
-```python
-ord('A')
-ord('中')
-chr(66)
-chr(25991)
-'\u4e2d\u6587' # '中文'
-x = b'ABC'
-'ABC'.encode('ascii')   # b'ABC'
-'中文'.encode('utf-8') # b'\xe4\xb8\xad\xe6\x96\x87'
-
-b'ABC'.decode('ascii')  # 'ABC'
-b'\xe4\xb8\xad\xe6\x96\x87'.decode('utf-8') #  '中文'
-b'\xe4\xb8\xad\xff'.decode('utf-8', errors='ignore') # '中'
-
-len('ABC') # 3
-len('中文') # 2
-
-len(b'ABC') # 3
-len(b'\xe4\xb8\xad\xe6\x96\x87') # 6
-len('中文'.encode('utf-8')) # 6
-
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
-'Hi, %s, you have $%d.' % ('Michael', 1000000)
-print('%2d-%02d' % (3, 1)) # 3-01
-print('%.2f' % 3.1415926) # 3.14
-
-'Age: %s. Gender: %s' % (25, True) # 'Age: 25. Gender: True'
-
-'growth rate: %d %%' % 7 # 'growth rate: 7 %'
-
-'Hello, {0}, 成绩提升了 {1:.1f}%'.format('小明', 17.125)  # 'Hello, 小明, 成绩提升了 17.1%'
 ```
 
 ### 控制语句 Flow Control
@@ -790,7 +788,7 @@ while n < 10:
 
 ### 函数 Function
 
-* 最基本的一种代码抽象方式,函数名其实就是指向一个函数对象的引用，完全可以把函数名赋给一个变量
+* 最基本的一种代码抽象方式,函数名就是指向一个函数对象的引用，完全可以把函数名赋给一个变量
   - abs(-10)是函数调用，而abs是函数本身
   - 函数名其实就是指向函数的变量
 * 内置函数：调用一个函数，需要知道函数的名称和参数（个数与数据类型），数据类型转换
@@ -941,14 +939,6 @@ def fact_iter(num, product):
 
 ### 函数式编程 Functional Programming Lambda
 
-使用 Python 进行函数式编程。
-
-* CyToolz：Toolz 的 Cython 实现 : 高性能函数式工具。(https://github.com/pytoolz/cytoolz/)
-* fn.py：在 Python 中进行函数式编程 : 实现了一些享受函数式编程缺失的功能。(https://github.com/kachayev/fn.py)
-* funcy：炫酷又实用的函数式工具。(https://github.com/Suor/funcy)
-* Toolz：一组用于迭代器，函数和字典的函数式编程工具。(https://github.com/pytoolz/toolz)
-* [coconut](https://github.com/evhub/coconut):Simple, elegant, Pythonic functional programming. <http://coconut-lang.org>
-
 * 一种抽象程度很高的编程范式，纯粹的函数式编程语言编写的函数没有变量，因此，任意一个函数，只要输入是确定的，输出就是确定的，这种纯函数我们称之为没有副作用
 * 特点:允许把函数本身作为参数传入另一个函数，还允许返回一个函数
 * Python对函数式编程提供部分支持。由于Python允许使用变量，因此，Python不是纯函数式编程语言。
@@ -975,6 +965,12 @@ def fact_iter(num, product):
   - functools.partial 作用:把一个函数的某些参数给固定住（也就是设置默认值），返回一个新的函数，调用这个新函数会更简单
   - 创建偏函数时，实际上可以接收函数对象、`*args`和`**kw`这3个参数
   - 将自第二位起的参数作为*`args`和`**kw`自动加到函数里面参数的左边
+
+* [CyToolz](https://github.com/pytoolz/cytoolz/) Toolz 的 Cython 实现 : 高性能函数式工具
+* [Toolz](https://github.com/pytoolz/toolz) 一组用于迭代器，函数和字典的函数式编程工具。
+* [fn.py](https://github.com/kachayev/fn.py) 在 Python 中进行函数式编程 : 实现了一些享受函数式编程缺失的功能。
+* [funcy](https://github.com/Suor/funcy) 炫酷又实用的函数式工具。
+* [coconut](https://github.com/evhub/coconut):Simple, elegant, Pythonic functional programming. <http://coconut-lang.org>
 
 ```python
 def add(x, y, f):
@@ -1155,10 +1151,10 @@ max(*(10, 5, 6, 7))
 
 ## 模块 Module
 
-* 提高了代码的可维护性
+* 提高代码的可维护性
 * 编写代码不必从零开始。当一个模块编写完毕，就可以被其他地方引用。包括Python内置的模块和来自第三方的模块
-* 可以避免函数名和变量名冲突。相同名字的函数和变量完全可以分别存在不同的模块中，尽量不要与内置函数名字冲突
-* 避免模块名冲突，Python又引入了按目录来组织模块的方法，称为包（Package）
+* 避免函数名和变量名冲突。相同名字的函数和变量完全可以分别存在不同的模块中，尽量不要与内置函数名字冲突
+* 为避免模块名冲突，Python又引入了按目录来组织模块的方法，称为包（Package）
   - 一个abc.py的文件就是一个名字叫abc的模块
   - 通过包来组织模块，避免冲突。方法是选择一个顶层包名，比如mycompany文件下的abc.py（mycompany.abc）。只要顶层的包名不与别人冲突，那所有模块都不会与别人冲突
   - 还可以扩展多级目录mycompany.web.www
@@ -1254,7 +1250,7 @@ sys.path.append('/Users/michael/my_py_scripts')
   - 外部代码不能随意访问与修改对象内部的状态，这样通过访问限制的保护，代码更加健壮
   - set方法可以做参数
   - 特殊变量：以双下划线开头，并且以双下划线结尾的。可以直接访问
-  - _name，这样的实例变量外部是可以访问的，但是，按照约定俗成的规定，意思就是，“虽然可以被访问，但是请把我视为私有变量，不要随意访问”。
+  - `_name`，这样的实例变量外部是可以访问的，但是，按照约定俗成的规定，意思就是，“虽然可以被访问，但是请把我视为私有变量，不要随意访问”。
 * 继承 Inheritance
   - 定义一个class的时候，可以从某个现有class继承，新的class称为子类（Subclass），而被继承的class称为基类、父类或超类（Base class、Super class）
   - 子类获得了父类的全部功能
@@ -1515,9 +1511,9 @@ hasattr(obj, 'power') # 有属性'power'吗？ True
 
 操作系统进程启动及通信库。
 
-* envoy：比 Python [subprocess](https://docs.python.org/2/library/subprocess.html) 模块更人性化。(https://github.com/kennethreitz/envoy)
-* sarge：另一 种 subprocess 模块的封装。(http://sarge.readthedocs.org/en/latest/)
-* [amoffat/sh](https://github.com/amoffat/sh)：一个完备的 subprocess 替代库。Python process launching <http://amoffat.github.com/sh>
+* [envoy](https://github.com/kennethreitz/envoy) 比 Python [subprocess](https://docs.python.org/2/library/subprocess.html) 模块更人性化。
+* [sarge](http://sarge.readthedocs.org/en/latest/) 另一 种 subprocess 模块的封装。
+* [sh](https://github.com/amoffat/sh)：一个完备的 subprocess 替代库。Python process launching <http://amoffat.github.com/sh>
 
 ### 并发和并行
 
@@ -1526,7 +1522,7 @@ hasattr(obj, 'power') # 有属性'power'吗？ True
 * multiprocessing：(Python 标准库) 基于进程的"线程"接口。(https://docs.python.org/2/library/multiprocessing.html)
 * threading：(Python 标准库)更高层的线程接口。(https://docs.python.org/2/library/threading.html)
 * eventlet：支持 WSGI 的异步框架。(http://eventlet.net/)
-* [gevent/gevent](https://github.com/python-greenlet/greenlet)：Coroutine-based concurrency library for Python <http://gevent.org>
+* [gevent](https://github.com/python-greenlet/greenlet)：Coroutine-based concurrency library for Python <http://gevent.org>
 * Tomorrow：用于产生异步代码的神奇的装饰器语法实现。(https://github.com/madisonmay/Tomorrow)
 * uvloop：在libuv之上超快速实现asyncio事件循环。(https://github.com/MagicStack/uvloop)
 * [ray-project/ray](https://github.com/ray-project/ray):A high-performance distributed execution engine
@@ -1536,16 +1532,16 @@ hasattr(obj, 'power') # 有属性'power'吗？ True
 * 原理
   - 编译正则表达式，如果正则表达式的字符串本身不合法，会报错；
   - 用编译后的正则表达式去匹配字符串
-* \d可以匹配一个数字，\w可以匹配一个字母或数字
-* .可以匹配任意字符
-* *表示任意个字符（包括0个），用+表示至少一个字符，用?表示0个或1个字符，用{n}表示n个字符，用{n,m}表示n-m个字符
-* []表示范围：
+* `\d` 可以匹配一个数字，\w可以匹配一个字母或数字
+* `.` 可以匹配任意字符
+* `*` 表示任意个字符（包括0个），用+表示至少一个字符，用?表示0个或1个字符，用{n}表示n个字符，用{n,m}表示n-m个字符
+* `[]` 表示范围
   - `[0-9a-zA-Z\_]` 可以匹配一个数字、字母或者下划线；
   - `[0-9a-zA-Z\_]+` 可以匹配至少由一个数字、字母或者下划线组成的字符串，比如'a100'，'0_Z'，'Py3000'等等；
   - `[a-zA-Z\_][0-9a-zA-Z\_]*` 可以匹配由字母或下划线开头，后接任意个由一个数字、字母或者下划线组成的字符串，也就是Python合法的变量；
   - `[a-zA-Z\_][0-9a-zA-Z\_]{0, 19}` 更精确地限制了变量的长度是1-20个字符（前面1个字符+后面最多19个字符）
 * `A|B`可以匹配A或B
-* ^表示行的开头，$表示行的结束
+* `^`表示行开头，`$`表示行结束
 * 由于Python的字符串本身也用\转义，建议使用Python的r前缀，就不用考虑转义的问题
 
 ## Web 

@@ -147,6 +147,15 @@ COMMIT
 * REJECT： to drop the packet and send an error message to remote host.
 * DROP： drop the packet and do not send an error message to remote host or sending host.
 
+```sh
+firewall-cmd --get-active-zones # List active firewall zones
+-–change-interface eth0 --zone=example # Place eth0 into example zone
+--get-services # List all defined services
+--add-service samba --zone=example # Add samba ports to example zone
+--add-port=123/tcp --zone=example # Add port 123 to example zone
+--permanent # Add this flag to make a change persistent
+```
+
 ## 规则
 
 * 考量
@@ -475,4 +484,74 @@ sudo ufw allow proto tcp from any to 202.54.1.1 port 443
 # Verify new settings:
 sudo ufw status
 sudo iptables -t nat -L -n -v
+```
+
+## nftables
+
+* 只有先关闭 iptables 的 nat 模块，流量才能走 nft 的 nat
+
+```sh
+# 先清空规则，然后INPUT OUTPUT FORWARD全接受，如果drop会让22端口也被干掉！
+iptables -F
+iptables -X
+iptables -Z
+iptables -P INPUT ACCEPT
+iptables -P OUTPUT ACCEPT
+iptables -P FORWARD ACCEPT
+# 查询nat表所有规则
+iptables -t nat -L --line-numbers
+# 删除nat表POSTROUTING链规则的第一条
+iptables -t nat -D POSTROUTING  1
+
+# 保存iptables规则
+iptables-save > default.rules
+# 将文件default.rules发送到一台有iptables翻译nftables规则的ubantu上并输入nft命令
+iptables-restore-translate -f default.rules
+
+
+# 在关掉 iptables 以及 iptables 的 nat 后进入 nftables 的交互模式执行
+nft
+
+# Translated by iptables-restore-translate v1.6.1 on Tue Jul  6 16:30:39 2021
+add table ip filter
+add chain ip filter INPUT { type filter hook input priority 0; policy accept; }
+add chain ip filter FORWARD { type filter hook forward priority 0; policy accept; }
+add chain ip filter OUTPUT { type filter hook output priority 0; policy accept; }
+add table ip nat
+add chain ip nat PREROUTING { type nat hook prerouting priority 0; policy accept; }
+add chain ip nat INPUT { type nat hook input priority 0; policy accept; }
+add chain ip nat OUTPUT { type nat hook output priority 0; policy accept; }
+add chain ip nat POSTROUTING { type nat hook postrouting priority 0; policy accept; }
+add rule ip nat POSTROUTING oifname eth0 ip saddr 10.121.6.6 ip daddr 192.168.5.77 counter masquerade
+add rule ip nat POSTROUTING oifname eth0 ip saddr 10.121.6.6 ip daddr 10.10.210.11 counter masquerade
+# Completed on Tue Jul  6 16:30:39 2021
+
+# 停止iptables服务
+systemctl stop iptables.service
+# 查看并确定服务是停止状态
+systemctl status iptables.service
+# 卸载nat模块
+modprobe -v -r ip6table_nat
+modprobe -v -r iptable_nat
+modprobe -v -r ip_nat_ftp
+
+# -i参数进入交互模式
+nft -i
+# 执行从iptables基础规则转换来的nftables规则
+add table ip filter
+add chain ip filter INPUT { type filter hook input priority 0; policy accept; }
+add chain ip filter FORWARD { type filter hook forward priority 0; policy accept; }
+add chain ip filter OUTPUT { type filter hook output priority 0; policy accept; }
+add table ip nat
+add chain ip nat PREROUTING { type nat hook prerouting priority 0; policy accept; }
+add chain ip nat INPUT { type nat hook input priority 0; policy accept; }
+add chain ip nat OUTPUT { type nat hook output priority 0; policy accept; }
+add chain ip nat POSTROUTING { type nat hook postrouting priority 0; policy accept; }
+add rule ip nat POSTROUTING oifname eth0 ip saddr 10.121.6.6 ip daddr 192.168.5.71 counter masquerade
+add rule ip nat POSTROUTING oifname eth0 ip saddr 10.121.6.6 ip daddr 10.10.210.18 counter masquerade
+# 增加测量流量规则
+add rule filter INPUT counter
+add rule nat POSTROUTING counter
+# 查看目前的nft规则
+nft list ruleset -a
 ```

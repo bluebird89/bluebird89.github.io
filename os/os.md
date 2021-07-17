@@ -35,6 +35,42 @@
 * 文件管理：有效地管理文件的存储空间，合理地组织和管理文件系统，为文件访问和文件保护提供更有效的方法及手段。
 * 提供用户接口：操作系统提供了访问应用程序和硬件的接口，使用户能够通过应用程序发起系统调用从而操纵硬件，实现想要的功能。
 
+## 启动
+
+* 启动 BIOS 读取硬盘 MBR 启动扇区
+* GRUB 启动，然后将权力交给 GRUB
+* GRUB 加载内核、加载作为根文件系统的 initramfs 文件，将权力交给内核
+* 内核启动，初始化整个操作系统
+
+### 预启动执行环境 Pre-boot Execution Environment PXE
+
+- 服务器端
+	- 需要配置 next-server，指向 PXE 服务器的地址，另外要配置初始启动文件 filename。
+	- 需要有一个 TFTP 服务器
+* 客户端 由于还没有操作系统，先把客户端放在 BIOS 里面。当计算机启动时，BIOS 把 PXE 客户端调入内存里面
+	* 需要有个 IP 地址：客户端启动起来，可以发送一个 DHCP 的请求，让 DHCP Server 给它分配一个地址,同时也给它 PXE 服务器的地址、启动文件 pxelinux.0。
+	* PXE 客户端知道要去 PXE 服务器下载这个文件后，就可以初始化机器。于是便开始下载，下载的时候使用的是 TFTP 协议。客户端向 TFTP 服务器请求下载这个文件，TFTP 服务器将这个文件传给它。
+	* PXE 客户端收到这个文件后，就开始执行这个文件。文件会指示 PXE 客户端，向 TFTP 服务器请求计算机的配置信息 pxelinux.cfg。TFTP 服务器会给 PXE 客户端一个配置文件，里面会说内核在哪里、initramfs 在哪里。PXE 客户端会请求这些文件
+
+```sh
+# DHCP Server 的一个样例配置
+ddns-update-style interim;
+ignore client-updates;
+allow booting;
+allow bootp;
+subnet 192.168.1.0 netmask 255.255.255.0
+{
+option routers 192.168.1.1;
+option subnet-mask 255.255.255.0;
+option time-offset -18000;
+default-lease-time 21600;
+max-lease-time 43200;
+range dynamic-bootp 192.168.1.240 192.168.1.250;
+filename "pxelinux.0";
+next-server 192.168.1.180;
+}
+```
+
 ## 概念
 
 * 实时操作系统

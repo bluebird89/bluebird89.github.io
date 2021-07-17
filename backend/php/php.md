@@ -1028,26 +1028,6 @@ phpcs.enable true
 phpcs /path/to/code/myfile.php
 phpcs /path/to/code
 
-# php-cs-fixer
-wget http://cs.sensiolabs.org/download/php-cs-fixer-v2.phar -O php-cs-fixer
-wget https://github.com/FriendsOfPHP/PHP-CS-Fixer/releases/download/v2.10.0/php-cs-fixer.phar -O php-cs-fixer
-curl -L http://cs.sensiolabs.org/download/php-cs-fixer-v2.phar -o php-cs-fixer
-
-sudo chmod a+x php-cs-fixer
-sudo mv php-cs-fixer /usr/local/bin/php-cs-fixer
-
-composer global require friendsofphp/php-cs-fixer
-export PATH="$PATH:$HOME/.composer/vendor/bin"
-brew install homebrew/php/php-cs-fixer
-
-sudo php-cs-fixer self-update
-brew upgrade php-cs-fixer
-
-php php-cs-fixer.phar fix /path/to/dir
-php php-cs-fixer.phar fix /path/to/file
-
-composer global require phpmd/phpmd
-
 ln -s /etc/php5/mods-available/redis.ini /etc/php5/cli/conf.d/10-redis.ini
 ln -s /etc/php5/mods-available/redis.ini /etc/php5/apache2/conf.d/10-redis.ini
 
@@ -1653,7 +1633,7 @@ php -r "echo ini_get('memory_limit').PHP_EOL;" # 获取php内存大小
 * 和 Class 相似，但仅旨在用细粒度和一致的方式来组合功能
 * 让两个无关PHP类具有类似行为:为传统继承增加了水平特性的组合；应用的Class 之间不需要继承
 * 无法通过 trait 自身来实例化
-* 优先级:当前类的成员 > trait 的方法 > 被继承的方法
+* 优先级:当前类成员 > trait 方法 > 继承方法
 * 命名冲突：使用insteadof关键字
 
 ### 匿名类
@@ -1886,7 +1866,15 @@ spl_autoload_register(function ($class){
   - `(?=pattern)` 正向预查，在任何匹配pattern的字符串开始处匹配查找字符串
   - `(?!pattern)` 负向预查，在任何不匹配 pattern 的字符串开始处匹配查找字符串。这是一个非获取匹配，也就是说，该匹配不需要获取供以后使用。例如'Windows (?!95|98|NT|2000)' 能匹配 "Windows 3.1" 中的 "Windows"，但不能匹配 "Windows 2000" 中的 "Windows"。预查不消耗字符，也就是说，在一个匹配发生后，在最后一次匹配之后立即开始下一次匹配的搜索，而不是从包含预查的字符之后开始。
 
-### reflect
+### 反射 reflect 
+
+- ReflectionClass `$refl_class = new ReflectionClass(Student::class)`
+- `$refl_class->newInstanceArgs(["obama", 100])`
+- ReflectionFunction 
+- ReflectionMethod `$reflectClass->getMethod()`
+- ReflectionParameter `$refl_method->getParameters()`
+	- 
+- [Better Reflection](https://github.com/Roave/BetterReflection): 基于AST的反射库，允许分析操作代码
 
 ### 生成器 iterator
 
@@ -2344,6 +2332,135 @@ system("/usr/a.sh");
 
 ## 性能
 
+### [代码规范](psr.md)
+
+* [clean-code-php](https://github.com/jupeter/clean-code-php):🛁 Clean Code concepts adapted for PHP [local](clean-code-php)
+
+### 代码分析 Code Analysis 
+
+- [Athletic](https://github.com/polyfractal/athletic): 一个基于注释的基准检测库
+- [Code Climate](https://codeclimate.com): 一个自动代码审查工具
+- [Dissect](https://github.com/jakubledl/dissect): 一个词法和语法分析的工具集合
+- [Exakat] (https://github.com/exakat/exakat): 一个PHP的静态分析引擎
+- [GrumPHP](https://github.com/phpro/grumphp): 一个用来保护代码质量的Composer插件
+- [Mondrian](https://github.com/Trismegiste/Mondrian): 使用图论的代码分析工具
+- [PHP Analyser](https://github.com/scrutinizer-ci/php-analyzer): 一个分析PHP代码查找缺陷和错误的库
+- [PHP Code Sniffer](https://github.com/squizlabs/PHP_CodeSniffer): 一个检测PHP、CSS和JS代码标准冲突的库
+- [PHP CS Fixer](https://github.com/FriendsOfPHP/PHP-CS-Fixer): 一个编码标准库
+- [PHP Manipulator](https://github.com/schmittjoh/php-manipulator): 一个分析和修改PHP源代码的库
+- [PHP Mess Detector](https://phpmd.org/): 一个扫描代码缺陷，次优代码，未使用的参数等等的库。
+- [PHP Metrics](https://github.com/phpmetrics/PhpMetrics) 一个静态测量库
+- [PHP Migration](https://github.com/monque/PHP-Migration): 一个PHP版本升级的静态分析库
+- [PHP Parser](https://github.com/nikic/PHP-Parser): A PHP parser written in PHP
+- [PHP Refactoring Browser](<https://github.com/QafooLabs/php-refactoring-browser): 一个重构PHP代码的命令行工具集
+- [PHP Semantic Versioning Checker](https://github.com/tomzx/php-semver-checker):一个比较两个源集和确定适当的应用语义版本的命令行实用程序
+- [Phan](https://github.com/etsy/phan): 一个基于PHP 7+和php-ast扩展的静态分析器
+- [PHPCheckstyle](https://github.com/PHPCheckstyle/phpcheckstyle): 一个帮助遵守特定的编码惯例的工具
+- [PHPCPD](https://github.com/sebastianbergmann/phpcpd): 一个检测复制和粘贴代码的库
+- [PhpDependencyAnalysis](https://github.com/mamuz/PhpDependencyAnalysis): 一个创建可定制依赖图的工具
+- [PHPLOC](https://github.com/sebastianbergmann/phploc): 一个快速测量PHP项目大小的工具
+- [PHPQA](https://github.com/EdgedesignCZ/phpqa): 一个用于运行质量保证工具的工具(phploc, phpcpd, phpcs, pdepend, phpmd, phpmetrics).
+- [PHPPHP](https://github.com/ircmaxell/PHPPHP): 一个PHP实现的PHP虚拟机
+- [PHPSandbox](https://github.com/Corveda/PHPSandbox): 一个PHP沙盒环境
+- [Qafoo Quality Analyzer](https://github.com/Qafoo/QualityAnalyzer): 一个可视化指标和源代码的工具
+- [Scrutinizer](https://scrutinizer-ci.com/): 一个审查PHP代码的web工具
+- [UBench](https://github.com/devster/ubench): 一个简单的微型基准检测库
+- [FrameworkBenchmarks](https://github.com/TechEmpower/FrameworkBenchmarks):Source for the TechEmpower Framework Benchmarks project <https://www.techempower.com/benchmarks/>
+- [php-static-analysis-tools](https://github.com/exakat/php-static-analysis-tools):A reviewed list of useful PHP static analysis tools
+- [phpAnalysis](https://github.com/dreamans/phpAnalysis):phpAnalysis - PHP应用性能分析系统
+- [psalm](https://github.com/vimeo/psalm):A static analysis tool for finding errors in PHP applications <https://psalm.dev>
+- [phpinsights](https://github.com/nunomaduro/phpinsights):💡Instant PHP quality checks from your console <https://phpinsights.com>
+
+- [EasyCodingStandard](https://github.com/Symplify/EasyCodingStandard):[READ-ONLY] Easiest way to start using PHP CS Fixer and PHP_CodeSniffer with 0-knowledge
+
+```sh
+# phpcs，phpcbf
+composer global require "squizlabs/php_codesniffer=*"
+~/.composer/vendor/bin/phpcs
+
+# 安装phpmd
+composer global require phpmd/phpmd
+~/.composer/vendor/bin/phpmd
+
+# 编写git pre-commit钩子
+# .git/hooks/pre-commit，加入脚本内容：https://github.com/tangjun1990/php_tools/blob/master/pre-commit （注意修改脚本中的目录哟！）
+
+# pre-commit
+#!/usr/bin/env bash
+
+PHP_CS="/Users/tangjun1/.composer/vendor/bin/phpcs"
+PHP_MD="/Users/tangjun1/.composer/vendor/bin/phpmd"
+HAS_PHP_CS=false
+HAS_PHP_MD=false
+
+if [ -x /Users/tangjun1/.composer/vendor/bin/phpcs ]; then
+    HAS_PHP_CS=true
+fi
+
+if [ -x /Users/tangjun1/.composer/vendor/bin/phpmd ]; then
+    HAS_PHP_MD=true
+fi
+
+if $HAS_PHP_CS; then
+    git status --porcelain | grep -e '^[AM]\(.*\).php$' | cut -c 3- | while read line; do
+        $PHP_CS "$line" --standard=PSR2;
+        git add "$line";
+    done
+else
+    echo ""
+    echo "php-cs was not found, please run:"
+    echo ""
+    echo "  composer global require squizlabs/php_codesniffer=*"
+    echo ""
+fi
+
+if $HAS_PHP_MD; then
+    git status --porcelain | grep -e '^[AM]\(.*\).php$' | cut -c 3- | while read line; do
+        $PHP_MD "$line" text codesize,unusedcode,naming;
+        git add "$line";
+    done
+else
+    echo ""
+    echo "php-md was not found, please run:"
+    echo ""
+    echo "  composer global require phpmd/phpmd"
+    echo ""
+fi
+
+chmod +x .git/hooks/pre-commit
+
+# 手动执行命令来检查
+~/.composer/vendor/bin/phpcs dirOrFile --standard=PSR2
+~/.composer/vendor/bin/phpmd dirOrFile text codesize,unusedcode,naming
+
+# php-cs-fixer
+wget http://cs.sensiolabs.org/download/php-cs-fixer-v2.phar -O php-cs-fixer
+wget https://github.com/FriendsOfPHP/PHP-CS-Fixer/releases/download/v2.10.0/php-cs-fixer.phar -O php-cs-fixer
+curl -L http://cs.sensiolabs.org/download/php-cs-fixer-v2.phar -o php-cs-fixer
+
+sudo chmod a+x php-cs-fixer
+sudo mv php-cs-fixer /usr/local/bin/php-cs-fixer
+
+composer global require friendsofphp/php-cs-fixer
+export PATH="$PATH:$HOME/.composer/vendor/bin"
+brew install homebrew/php/php-cs-fixer
+
+sudo php-cs-fixer self-update
+brew upgrade php-cs-fixer
+
+php php-cs-fixer.phar fix /path/to/dir
+php php-cs-fixer.phar fix /path/to/file
+```
+
+#### [PHPStan](https://github.com/phpstan/phpstan)
+
+PHP Static Analysis Tool - discover bugs in your code without running it! https://phpstan.org/
+
+```sh
+composer require --dev phpstan/phpstan
+vendor/bin/phpstan analyse src tests
+```
+
 ### 测试
 
 - 压测
@@ -2402,6 +2519,22 @@ system("/usr/a.sh");
 	+ yac
 - 扩展实现高频逻辑
 - runtime优化:HHVM
+
+### [balckfire](https://blackfire.io)
+
+* [docs](https://blackfire.io/docs/introduction)
+
+```sh
+brew tap blackfireio/homebrew-blackfire
+brew install blackfire-agent
+sudo blackfire-agent --register --server-id=78f47cdd-d565-429b-93dd-03456936c410 --server-token=2adb1d6f8cfd80355ddd8cff2f9e2b0dfbffb38bfd05f8902e33090dc84493a3
+brew services start blackfire-agent
+brew services restart blackfire-agent
+/usr/local/var/log/blackfire/agent.log
+brew install blackfire-php74
+extension=blackfire.so
+blackfire config --client-id=1fc30f1c-4590-4328-a9d0-724fc09950e9 --client-token=65f2bedd1d4c68e6693eed6b8c2861c59452119291bf7493250c3d06f7f3340d
+```
 
 ### [xhprof](https://github.com/phacility/xhprof)
 
@@ -2478,6 +2611,11 @@ $run_id = $xhprof_runs->save_run($xhprof_data, "xhprof_test"); # 将run_id保存
 # 查看结果
 $host_url/xhpfrof_html/index.php?run=58d3b28b521f6&source=xhprof_test
 ```
+
+### [Codeception](https://github.com/Codeception/Codeception)
+
+Full-stack testing PHP framework <http://codeception.com>
+
 
 ## 禁止
 
@@ -2654,32 +2792,85 @@ java -jar ./vendor/bin/selenium-server-standalone-3.4.0.jar
   
 ### 通用
 
-  - [Aura PHP](http://auraphp.com/): 一个独立的组件框架
-  - [CakePHP](https://github.com/cakephp/cakephp)CakePHP: The Rapid Development Framework for PHP - Official Repository <http://cakephp.org>
+- [Aura PHP](http://auraphp.com/): 一个独立的组件框架
+- [CakePHP](https://github.com/cakephp/cakephp)CakePHP: The Rapid Development Framework for PHP - Official Repository <http://cakephp.org>
     + [cakephp-setup](https://github.com/dereuromark/cakephp-setup):CakePHP Setup Plugin - containing useful management and debugging tools for CakePHP apps <http://www.dereuromark.de>
     + [docs](https://github.com/cakephp/docs):CakePHP CookBook <http://book.cakephp.org>
     + [CakePHP CRUD](https://github.com/friendsofcake/crud): CakePHP的快速应用程序（RAD）插件
-  - [PPI Framework 2](http://www.ppi.io): 一个互操作性框架
-  - [Zend Framework 2](https://framework.zend.com): 另一个由独立组件组成的框架 (ZF2)
+- [PPI Framework 2](http://www.ppi.io): 一个互操作性框架
+- [Zend Framework 2](https://framework.zend.com): 另一个由独立组件组成的框架 (ZF2)
+- [zendframework](https://github.com/zendframework/zendframework) Official Zend Framework repository <https://framework.zend.com/>
+	* [tutorials](https://docs.zendframework.com/tutorials)
   - [Radar](https://github.com/radarphp/Radar.Adr): 一个基于PHP的Action-Domain-Responder实现
   - [Ice](https://www.iceframework.org/): 另一个通过C扩展实现的简单快速的PHP框架
   - [Knp RAD Bundle](http://rad.knplabs.com/): Symfony 2的快速应用程序（RAD）包
   - [dubbo-php-framework](https://github.com/lexin-fintech/dubbo-php-framework):dubbo php implementation
   - [php-msf](https://github.com/pinguo/php-msf)PHP微服务框架即"Micro Service Framework For PHP"，是Camera360社区服务器端团队基于Swoole自主研发现代化的PHP协程服务框架，简称msf或者php-msf，是Swoole的工程级企业应用框架，经受了Camera360亿级用户高并发大流量的考验
-  - [Youzan Zan Php Installer](https://github.com/youzan/zan-installer)Youzan Zan Php Installer
-  - [tsf](https://github.com/tencent-php/tsf):coroutine and Swoole based php server framework in tencent
-  - [nette](https://github.com/nette/nette):METAPACKAGE for Nette Framework components <https://nette.org>
-  - [Biny](https://github.com/Tencent/Biny):Biny is a tiny, high-performance PHP framework for web applications
-  - [phpdaemon](https://github.com/kakserpom/phpdaemon):Asynchronous server-side framework for network applications implemented in PHP using libevent <http://daemon.io/>
-  - [bref](https://github.com/mnapoli/bref):Serverless framework for PHP
-  - [manaphp](https://github.com/manaphp/manaphp):ManaPHP Framework
-  - [Elgg](https://github.com/Elgg/Elgg ) <http://learn.elgg.org/en/stable/guides>
-  - [easy-php](https://github.com/TIGERB/easy-php):A Faster Lightweight Full-Stack PHP Framework 🚀 <http://easy-php.tigerb.cn>
-  - [yar](https://github.com/laruence/yar) Light, concurrent RPC framework for PHP & C
-  - [yaf](https://github.com/laruence/yaf)A fast php framework written in c, built in php-ext <http://pecl.php.net/package/yaf> `sudo pecl install yaf`
+- [Youzan Zan Php Installer](https://github.com/youzan/zan-installer)Youzan Zan Php Installer
+- [tsf](https://github.com/tencent-php/tsf):coroutine and Swoole based php server framework in tencent
+- [nette](https://github.com/nette/nette):METAPACKAGE for Nette Framework components <https://nette.org>
+- [Biny](https://github.com/Tencent/Biny):Biny is a tiny, high-performance PHP framework for web applications
+- [phpdaemon](https://github.com/kakserpom/phpdaemon):Asynchronous server-side framework for network applications implemented in PHP using libevent <http://daemon.io/>
+- [bref](https://github.com/mnapoli/bref):Serverless framework for PHP
+- [manaphp](https://github.com/manaphp/manaphp):ManaPHP Framework
+- [Elgg](https://github.com/Elgg/Elgg ) <http://learn.elgg.org/en/stable/guides>
+- [easy-php](https://github.com/TIGERB/easy-php):A Faster Lightweight Full-Stack PHP Framework 🚀 <http://easy-php.tigerb.cn>
+- [yar](https://github.com/laruence/yar) Light, concurrent RPC framework for PHP & C
+- [yaf](https://github.com/laruence/yaf)A fast php framework written in c, built in php-ext <http://pecl.php.net/package/yaf> `sudo pecl install yaf`
 		* [CZD_Yaf_Extension](https://github.com/sillydong/CZD_Yaf_Extension):建立在 yarf基础上，集成了Smarty引擎，加入了封装好的各种功能类
 		* [Yaf用户手册](http://www.laruence.com/manual/)
-		
+
+#### [cphalcon](https://github.com/phalcon/cphalcon)
+
+High performance, full-stack PHP framework delivered as a C extension. <https://phalconphp.com>
+
+* [documentation](https://docs.phalconphp.com)
+* [cphalcon7](https://github.com/dreamsxin/cphalcon7):Phalcon7 - Web framework for PHP7.x 高性能PHP7框架 <http://www.myleftstudio.com/>
+* [mvc](https://github.com/phalcon/mvc.git)
+
+
+```sh
+pecl channel-update pecl.php.net
+pecl install phalcon
+
+### Ubuntu
+curl -s https://packagecloud.io/install/repositories/phalcon/stable/script.deb.sh | sudo bash
+
+sudo apt-get install php5.6-phalcon
+sudo apt-get install php7.2ssssclear-phalcon
+
+sudo service php5.6-fpm start
+
+### Mac
+brew install php71-phalcon
+
+## Phalcon Developer Tools
+php_psr
+
+composer global require phalcon/devtools
+extension=psr.so
+
+git clone git://github.com/phalcon/phalcon-devtools.git
+cd phalcon-devtools/
+./phalcon.sh
+ln -s ~/phalcon-devtools/phalcon.php /usr/bin/phalcon
+chmod ugo+x /usr/bin/phalcon
+```
+
+#### [CodeIgniter](https://github.com/codeigniter4/CodeIgniter4)
+
+Open Source PHP Framework (originally from EllisLab) <https://codeigniter.com/>
+
+* CodeIgniter 3 这类不完全兼容 PHP7 的但是轻量级的框架
+* [CodeIgniter](https://github.com/bcit-ci/CodeIgniter):Open Source PHP Framework (originally from EllisLab) <https://codeigniter.com/>
+* [CodeIgniter4 User Guide](https://bcit-ci.github.io/CodeIgniter4/)
+    - [中文](http://codeigniter.org.cn/user_guide/general/welcome.html)
+* [A3M](https://github.com/donjakobo/A3M):A3M - Bootstrapped - A CodeIgniter OpenID/Oauth boilerplate library utilizing Twitter Bootstrap UI <https://github.com/donjakobo/A3M/wiki/Installation-Instructions>
+
+```sh
+composer create-project codeigniter4/appstarter CodeApp
+```
+
 ### 异步框架
 
   - [amp](https://github.com/amphp/amp):A non-blocking concurrency framework for PHP applications. <https://amphp.org/amp>
@@ -2862,6 +3053,22 @@ php bin/console server:start
 open http://127.0.0.1:8000
 ```
 
+## 敏捷
+
+### [Behat](https://github.com/Behat/Behat)
+
+BDD in PHP BDD in PHP <http://behat.org/>
+
+```sh
+composer require --dev behat/behat
+vendor/bin/behat -V
+
+vendor/bin/behat --init
+
+vendor/bin/behat
+```
+
+
 ## 持续集成 Continuous Integration
 
 * [CircleCI](https://circleci.com): 一个持续集成平台
@@ -2882,8 +3089,23 @@ open http://127.0.0.1:8000
 - (<https://github.com/aerialls/Plum)[Plum>]: 一个部署库
 - (<https://github.com/tamagokun/pomander)[Pomander>]: 一个PHP应用部署工具
 - (<https://github.com/rocketeers/rocketeer)[Rocketeer>]: PHP世界里的一个快速简单的部署器
-- [Capistrano](link)
- 
+- [deployer](deployer)
+
+#### [Capistrano](https://github.com/capistrano/capistrano)
+
+Remote multi-server automation tool <http://www.capistranorb.com>
+
+* config/deploy.rb
+* config/deploy/production.rb
+
+```sh
+gem install capistrano
+cap install
+
+ cap production deploy
+  cap production deploy:rollback
+```
+
 ## 文档
 
 * [psr](./psr.md)
@@ -2994,22 +3216,23 @@ O(log(n))，O(1).因为哈希表是散列的，在遇到`key`>'12'这种查找�
 ```
 
 ### 加密数据
-  - (<https://paragonie.com/project/halite)[Halite>]: 一个简单的使用[libsodium](https://github.com/jedisct1/libsodium)的加密库
-  - (<https://github.com/ezyang/htmlpurifier)[HTML> Purifier]: 一个兼容标准的HTML过滤器
-  - (<https://github.com/psecio/iniscan)[IniScan>]: 一个扫描PHP INI文件安全的库
-  - (<https://github.com/jenssegers/optimus)[Optimus>]: 基于Knuth乘法散列方法的身份混淆工具
-  - (<https://github.com/defuse/php-encryption)[PHP> Encryption]: 一个安全的PHP加密库
-  - (<https://github.com/PHPIDS/PHPIDS)[PHP> IDS]: 一个结构化的PHP安全层
-  - (<https://github.com/Herzult/php-ssh)[PHP> SSH]: 一个试验的面向对象的SSH包装库
-  - [RandomLib](<https://github.com/ircmaxell/RandomLib): 一个生成随机数和字符串的库
-  - [SecurityMultiTool](https://github.com/padraic/SecurityMultiTool): 一个PHP安全库
-  - [SensioLabs Security Check](<https://security.sensiolabs.org/): 一个为检查Composer依赖提供安全建议的web工具
-  - [TCrypto](https://github.com/timoh6/TCrypto): 一个简单的键值加密存储库
-  - [True Random](https://github.com/pixeloution/true-random): 使用[www.random.org](https://www.random.org/)生成随机数的库
-  - [VAddy](https://vaddy.net/): 一个持续安全的web应用测试平台
-  - [Zed](https://www.owasp.org/index.php/OWASP_Zed_Attack_Proxy_Project): 一个集成的web应用渗透测试工具
-  - [security-checker](https://github.com/sensiolabs/security-checker):PHP frontend for security.sensiolabs.org <https://security.sensiolabs.org>
-  - [phpseclib](https://github.com/phpseclib/phpseclib):PHP Secure Communications Library <http://phpseclib.sourceforge.net>
+
+- (<https://paragonie.com/project/halite)[Halite>]: 一个简单的使用[libsodium](https://github.com/jedisct1/libsodium)的加密库
+- (<https://github.com/ezyang/htmlpurifier)[HTML> Purifier]: 一个兼容标准的HTML过滤器
+- (<https://github.com/psecio/iniscan)[IniScan>]: 一个扫描PHP INI文件安全的库
+- (<https://github.com/jenssegers/optimus)[Optimus>]: 基于Knuth乘法散列方法的身份混淆工具
+- (<https://github.com/defuse/php-encryption)[PHP> Encryption]: 一个安全的PHP加密库
+- (<https://github.com/PHPIDS/PHPIDS)[PHP> IDS]: 一个结构化的PHP安全层
+- (<https://github.com/Herzult/php-ssh)[PHP> SSH]: 一个试验的面向对象的SSH包装库
+- [RandomLib](<https://github.com/ircmaxell/RandomLib): 一个生成随机数和字符串的库
+- [SecurityMultiTool](https://github.com/padraic/SecurityMultiTool): 一个PHP安全库
+- [SensioLabs Security Check](<https://security.sensiolabs.org/): 一个为检查Composer依赖提供安全建议的web工具
+- [TCrypto](https://github.com/timoh6/TCrypto): 一个简单的键值加密存储库
+- [True Random](https://github.com/pixeloution/true-random): 使用[www.random.org](https://www.random.org/)生成随机数的库
+- [VAddy](https://vaddy.net/): 一个持续安全的web应用测试平台
+- [Zed](https://www.owasp.org/index.php/OWASP_Zed_Attack_Proxy_Project): 一个集成的web应用渗透测试工具
+- [security-checker](https://github.com/sensiolabs/security-checker):PHP frontend for security.sensiolabs.org <https://security.sensiolabs.org>
+- [phpseclib](https://github.com/phpseclib/phpseclib):PHP Secure Communications Library <http://phpseclib.sourceforge.net>
  
 ### 密码 Passwords
   - (<https://github.com/timoh6/GenPhrase)[GenPhrase>]: 一个随机生成安全密码哈希的库
@@ -3022,44 +3245,6 @@ O(log(n))，O(1).因为哈希表是散列的，在遇到`key`>'12'这种查找�
   - [Zxcvbn PHP](https://github.com/bjeavons/zxcvbn-php): 一个基于Zxcvbn JS的现实的PHP密码强度估计库
 
 ## 性能
-
-* 代码分析 Code Analysis 分析，解析和处理代码库的库和工具
-  - [Athletic](https://github.com/polyfractal/athletic): 一个基于注释的基准检测库
-  - [Better Reflection](https://github.com/Roave/BetterReflection): 基于AST的反射库，允许分析操作代码
-  - [Code Climate](https://codeclimate.com): 一个自动代码审查工具
-  - [Dissect](https://github.com/jakubledl/dissect): 一个词法和语法分析的工具集合
-  - (<https://github.com/exakat/exakat)[Exakat>]: 一个PHP的静态分析引擎
-  - (<https://github.com/phpro/grumphp)[GrumPHP>]: 一个用来保护代码质量的Composer插件
-  - (<https://github.com/Trismegiste/Mondrian)[Mondrian>]: 使用图论的代码分析工具
-  - (<https://github.com/scrutinizer-ci/php-analyzer)[PHP> Analyser]: 一个分析PHP代码查找缺陷和错误的库
-  - (<https://github.com/squizlabs/PHP_CodeSniffer)[PHP> Code Sniffer]: 一个检测PHP、CSS和JS代码标准冲突的库
-  - (<https://github.com/FriendsOfPHP/PHP-CS-Fixer)[PHP> CS Fixer]: 一个编码标准库
-  - (<https://github.com/schmittjoh/php-manipulator)[PHP> Manipulator]: 一个分析和修改PHP源代码的库
-  - (<https://phpmd.org/)[PHP> Mess Detector]: 一个扫描代码缺陷，次优代码，未使用的参数等等的库。
-  - (<https://github.com/phpmetrics/PhpMetrics)[PHP> Metrics]: 一个静态测量库
-  - (<https://github.com/monque/PHP-Migration)[PHP> Migration]: 一个PHP版本升级的静态分析库
-  - [PHP Parser](https://github.com/nikic/PHP-Parser): A PHP parser written in PHP
-  - (<https://github.com/QafooLabs/php-refactoring-browser)[PHP> Refactoring Browser]: 一个重构PHP代码的命令行工具集
-  - [PHP Semantic Versioning Checker](https://github.com/tomzx/php-semver-checker):一个比较两个源集和确定适当的应用语义版本的命令行实用程序
-  - [Phan](https://github.com/etsy/phan): 一个基于PHP 7+和php-ast扩展的静态分析器
-  - (<https://github.com/PHPCheckstyle/phpcheckstyle)[PHPCheckstyle>]: 一个帮助遵守特定的编码惯例的工具
-  - (<https://github.com/sebastianbergmann/phpcpd)[PHPCPD>]: 一个检测复制和粘贴代码的库
-  - (<https://github.com/mamuz/PhpDependencyAnalysis)[PhpDependencyAnalysis>]: 一个创建可定制依赖图的工具
-  - (<https://github.com/sebastianbergmann/phploc)[PHPLOC>]: 一个快速测量PHP项目大小的工具
-  - (<https://github.com/EdgedesignCZ/phpqa)[PHPQA>]: 一个用于运行质量保证工具的工具(phploc, phpcpd, phpcs, pdepend, phpmd, phpmetrics).
-  - (<https://github.com/ircmaxell/PHPPHP)[PHPPHP>]: 一个PHP实现的PHP虚拟机
-  - (<https://github.com/Corveda/PHPSandbox)[PHPSandbox>]: 一个PHP沙盒环境
-  - (<https://github.com/Qafoo/QualityAnalyzer)[Qafoo> Quality Analyzer]: 一个可视化指标和源代码的工具
-  - (<https://scrutinizer-ci.com/)[Scrutinizer>]: 一个审查PHP代码的web工具
-  - (<https://github.com/devster/ubench)[UBench>]: 一个简单的微型基准检测库
-  - [FrameworkBenchmarks](https://github.com/TechEmpower/FrameworkBenchmarks):Source for the TechEmpower Framework Benchmarks project <https://www.techempower.com/benchmarks/>
-  - [php-static-analysis-tools](https://github.com/exakat/php-static-analysis-tools):A reviewed list of useful PHP static analysis tools
-  - [phpAnalysis](https://github.com/dreamans/phpAnalysis):phpAnalysis - PHP应用性能分析系统
-  - [psalm](https://github.com/vimeo/psalm):A static analysis tool for finding errors in PHP applications <https://psalm.dev>
-  - [phpinsights](https://github.com/nunomaduro/phpinsights):💡Instant PHP quality checks from your console <https://phpinsights.com>
-  - [PHPStan](https://github.com/phpstan/phpstan):PHP Static Analysis Tool - discover bugs in your code without running it! https://phpstan.org/
-    + `composer require --dev phpstan/phpstan`
-    + `vendor/bin/phpstan analyse src tests`
 
 ## Architectural 相关的设计模式库，组织代码编程的方法和途径
 
@@ -3489,75 +3674,6 @@ O(log(n))，O(1).因为哈希表是散列的，在遇到`key`>'12'这种查找�
 
 * [dddinaction](https://github.com/fabwu/dddinaction):PHP implementation of the DDD in Practice Pluralsight course <https://www.pluralsight.com/courses/domain-driven-design-in-practice>
 * https://ilovephp.jondh.me.uk/en/tutorial/make-your-own-blog
-
-## [代码规范](psr.md)
-
-* [clean-code-php](https://github.com/jupeter/clean-code-php):🛁 Clean Code concepts adapted for PHP [local](clean-code-php)
-
-### coding standard
-
-* [EasyCodingStandard](https://github.com/Symplify/EasyCodingStandard):[READ-ONLY] Easiest way to start using PHP CS Fixer and PHP_CodeSniffer with 0-knowledge
-
-```sh
-# phpcs，phpcbf
-composer global require "squizlabs/php_codesniffer=*"
-~/.composer/vendor/bin/phpcs
-
-# 安装phpmd
-composer global require phpmd/phpmd
-~/.composer/vendor/bin/phpmd
-
-# 编写git pre-commit钩子
-# .git/hooks/pre-commit，加入脚本内容：https://github.com/tangjun1990/php_tools/blob/master/pre-commit （注意修改脚本中的目录哟！）
-
-# pre-commit
-#!/usr/bin/env bash
-
-PHP_CS="/Users/tangjun1/.composer/vendor/bin/phpcs"
-PHP_MD="/Users/tangjun1/.composer/vendor/bin/phpmd"
-HAS_PHP_CS=false
-HAS_PHP_MD=false
-
-if [ -x /Users/tangjun1/.composer/vendor/bin/phpcs ]; then
-    HAS_PHP_CS=true
-fi
-
-if [ -x /Users/tangjun1/.composer/vendor/bin/phpmd ]; then
-    HAS_PHP_MD=true
-fi
-
-if $HAS_PHP_CS; then
-    git status --porcelain | grep -e '^[AM]\(.*\).php$' | cut -c 3- | while read line; do
-        $PHP_CS "$line" --standard=PSR2;
-        git add "$line";
-    done
-else
-    echo ""
-    echo "php-cs was not found, please run:"
-    echo ""
-    echo "  composer global require squizlabs/php_codesniffer=*"
-    echo ""
-fi
-
-if $HAS_PHP_MD; then
-    git status --porcelain | grep -e '^[AM]\(.*\).php$' | cut -c 3- | while read line; do
-        $PHP_MD "$line" text codesize,unusedcode,naming;
-        git add "$line";
-    done
-else
-    echo ""
-    echo "php-md was not found, please run:"
-    echo ""
-    echo "  composer global require phpmd/phpmd"
-    echo ""
-fi
-
-chmod +x .git/hooks/pre-commit
-
-# 手动执行命令来检查
-~/.composer/vendor/bin/phpcs dirOrFile --standard=PSR2
-~/.composer/vendor/bin/phpmd dirOrFile text codesize,unusedcode,naming
-```
 
 ## 面试
 

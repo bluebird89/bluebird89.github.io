@@ -1,18 +1,23 @@
+---
+date updated: '2021-07-17T11:21:12+08:00'
+
+---
+
 # [Gogs](https://github.com/gogs/gogs)
 
 a painless self-hosted Git service. <https://gogs.io>
 
 ## 安装
 
-* Golang 安装配置
-* git安装配置
-* mysql安装配置
-* nginx安装配置
-* gogs安装配置
-* gogs配置运维
-* 安装 supervisor
+- Golang 安装配置
+- git 安装配置
+- mysql安装配置
+- nginx安装配置
+- gogs安装配置
+- gogs配置运维
+- 安装 supervisor
 
-```shell
+```sh
 sudo adduser git
 su git             #以git用户登录
 mkdir ~/.ssh       #建立.ssh目录
@@ -79,10 +84,10 @@ sudo service nginx restart|reload
 
 ## 配置
 
-* 配置supervisor
-* 配置服务器
+- 配置supervisor
+- 配置服务器
 
-```
+```sh
 sudo vi /etc/supervisor/supervisor.conf
 
 [program:gogs]
@@ -107,9 +112,10 @@ service supervisor restart
 
 ## 测试
 
-* 初始化 <http://local.gogs.test/install> 配置数据库与ip地址
+- 初始化 <http://local.gogs.test/install> 配置数据库与ip地址
 
 ```sh
 echo 'I love Gogs!' >> README.md
+
 git add --all && git commit -m "init commit" && git push origin master
 ```
