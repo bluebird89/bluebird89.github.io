@@ -1590,42 +1590,6 @@ kubectl create configmap nginx-config-files --from-file=./data/nginx/conf.d/
 kubectl create configmap nginx-html-files --from-file=./data/nginx/html/configmap.html
 ```
 
-## CRD Custom Resource Definition
-
-- 允许用户在 Kubernetes 中添加一个跟 Pod、Node 类似的、新的 API 资源类型，即：自定义 API 资源
-- 通过创建 CRDs , API server 可以处理 CRDs 的 REST 请求（CRUD）和持久性存储。更适用于声明式的API，和kubernetes高度集成统一。
-- API Aggregation, 一个独立的 API server。主API server委托此独立的API server处理自定义resource。 需要编程，但能够更加灵活的控制API的行为，更加灵活的自定义存储，以及与API不同版本之间的转换。一般更适用于命令模式，或者复用已经存在REST API代码，不直接支持kubectl 和 k8s UI, 不支持scope resource in a cluster/namespace.
-- 自定义控制器工作原理
-  - 控制器要做第一件事，是从 Kubernetes 的 APIServer 里获取它所关心的对象，也就是定义的 Network 对象.依靠的是一个叫作 Informer（可以翻译为：通知器）的代码库完成的。Informer 与 API 对象是一一对应的，所以传递给自定义控制器的，正是一个 Network 对象的 Informer（Network Informer）
-  - Network Informer 正是使用这个 networkClient，跟 APIServer 建立连接。
-  - 真正负责维护连接的，则是 Informer 所使用的 Reflector 包.Reflector 使用的是一种叫作 ListAndWatch 方法，来“获取”并“监听”这些 Network 对象实例的变化
-  - 在 ListAndWatch 机制下，一旦 APIServer 端有新的 Network 实例被创建、删除或者更新，Reflector 都会收到“事件通知”。这时，该事件及它对应的 API 对象这个组合，就被称为增量（Delta），它会被放进一个 Delta FIFO Queue（即：增量先进先出队列）中
-  - Informer 会不断地从这个 Delta FIFO Queue 里读取（Pop）增量。每拿到一个增量，Informer 就会判断这个增量里的事件类型，然后创建或者更新本地对象的缓存。这个缓存，在 Kubernetes 里一般被叫作 Store
-  - Informer 第二个职责，根据这些事件的类型，触发事先注册好 ResourceEventHandler
-- Informer，其实就是一个带有本地缓存和索引机制的、可以注册 EventHandler 的 client。通过一种叫作 ListAndWatch 的方法，把 APIServer 中的 API 对象缓存在了本地，并负责更新和维护这个缓存
-  - 通过 APIServer 的 LIST API“获取”所有最新版本的 API 对象；然后，再通过 WATCH API 来“监听”所有这些 API 对象的变化
-  - 通过监听到的事件变化，Informer 就可以实时地更新本地缓存，并且调用这些事件对应的 EventHandler 了
-  - 每经过 resyncPeriod 指定的时间，Informer 维护的本地缓存，都会使用最近一次 LIST 返回的结果强制更新一次，从而保证缓存的有效性。在 Kubernetes 中，这个缓存强制更新的操作就叫作：resync
-  - 这个定时 resync 操作，也会触发 Informer 注册的“更新”事件。但此时，这个“更新”事件对应的 Network 对象实际上并没有发生变化，即：新、旧两个 Network 对象的 ResourceVersion 是一样的。在这种情况下，Informer 就不需要对这个更新事件再做进一步的处理了
-- 参考
-  - [](https://github.com/resouer/k8s-controller-custom-resource)；Base sample for a custom controller in Kubernetes working with custom resources
-
-```sh
-# 代码生成的工作目录，也就是我们的项目路径
-ROOT_PACKAGE="github.com/resouer/k8s-controller-custom-resource"
-# API Group
-CUSTOM_RESOURCE_NAME="samplecrd"
-# API Version
-CUSTOM_RESOURCE_VERSION="v1"
-
-# 安装k8s.io/code-generator
-go get -u k8s.io/code-generator/...
-cd $GOPATH/src/k8s.io/code-generator
-
-# 执行代码自动生成，其中pkg/client是生成目标目录，pkg/apis是类型定义目录
-./generate-groups.sh all "$ROOT_PACKAGE/pkg/client" "$ROOT_PACKAGE/pkg/apis" "$CUSTOM_RESOURCE_NAME:$CUSTOM_RESOURCE_VERSION"
-```
-
 ## Dynamic Admission Control （Initializer）
 
 - 流程
@@ -2113,9 +2077,16 @@ Kubernetes IN Docker - local clusters for testing Kubernetes <https://kind.sigs.
 
 #### 容器运行时接口 Container Runtime Interface CRI
 
-- 负责提取并运行容器镜像
-- Docker 本身只是彻底改变了容器技术并将其推向了通用舞台，因此Docker Engine也成为Kubernetes所支持的第一种（也是最初唯一一种）容器运行时
+- 在 1.3 就在代码仓库中同时支持了 rkt 和 Docker 两种运行时，但是这些代码为 Kubelet 组件的维护带来了很大的困难，不仅需要维护不同的运行时，接入新的运行时也很困难
+- 容器运行时接口（Container Runtime Interface、CRI）是 Kubernetes 在 1.5 中引入的新接口，Kubelet 可以通过这个新接口使用各种各样的容器运行时。其实 CRI 的发布就意味着 Kubernetes 一定会将 Dockershim 的代码从仓库中移除。
+	- 引入容器运行时接口（Container Runtime Interface、CRI）隔离不同容器运行时的实现机制，容器编排系统不应该依赖于某个具体的运行时实现
+	- Docker 没有支持也不打算支持 Kubernetes 的 CRI 接口，需要 Kubernetes 社区在仓库中维护 Dockershim
+	- Docker 本身只是彻底改变了容器技术并将其推向了通用舞台，因此Docker Engine也成为Kubernetes所支持的第一种（也是最初唯一一种）容器运行时
+	- 与容器运行时相比，Docker 更像是一个复杂的开发者工具，它提供了从构建到运行的全套功能。开发者可以很快地上手 Docker 并在本地运行并管理一些 Docker 容器，然而在集群中运行的容器运行时往往不需要这么复杂的功能，Kubernetes 需要的只是 CRI 中定义的那些接口。
+	- 虽然 Docker 中包含 CRI 需要的所有功能，但是都需要实现一层包装以兼容 CRI
 - 社区希望能够使用多种不同类型的容器，因此参与者们创建了容器运行时接口（CRI），也就是容器引擎与Kubernetes间进行通信的标准方式。如果容器引擎与CRI相兼容，即可轻松在Kubernetes当中运行
+- CRI 是一系列用于管理容器运行时和镜像的 gRPC 接口，能在它的定义中找到 `RuntimeService` 和 `ImageService` 两个服务
+- Kubernetes 将 CRI 垫片实现成 gRPC 服务器与 Kubelet 中的客户端通信，所有的请求都会被转发给容器运行时处理。
 
 ##### [Containerd](https://github.com/containerd/containerd)
 
@@ -2195,6 +2166,42 @@ kubectl apply -f https://raw.githubusercontent.com/rook/rook/master/cluster/exam
 kubectl apply -f https://raw.githubusercontent.com/rook/rook/master/cluster/examples/kubernetes/ceph/cluster.yaml
 kubectl get pods -n rook-ceph-system
 kubectl get pods -n rook-ceph
+```
+
+#### CRD Custom Resource Definition
+
+- 允许用户在 Kubernetes 中添加一个跟 Pod、Node 类似的、新的 API 资源类型，即：自定义 API 资源
+- 通过创建 CRDs , API server 可以处理 CRDs 的 REST 请求（CRUD）和持久性存储。更适用于声明式的API，和kubernetes高度集成统一。
+- API Aggregation, 一个独立的 API server。主API server委托此独立的API server处理自定义resource。 需要编程，但能够更加灵活的控制API的行为，更加灵活的自定义存储，以及与API不同版本之间的转换。一般更适用于命令模式，或者复用已经存在REST API代码，不直接支持kubectl 和 k8s UI, 不支持scope resource in a cluster/namespace.
+- 自定义控制器工作原理
+  - 控制器要做第一件事，是从 Kubernetes 的 APIServer 里获取它所关心的对象，也就是定义的 Network 对象.依靠的是一个叫作 Informer（可以翻译为：通知器）的代码库完成的。Informer 与 API 对象是一一对应的，所以传递给自定义控制器的，正是一个 Network 对象的 Informer（Network Informer）
+  - Network Informer 正是使用这个 networkClient，跟 APIServer 建立连接。
+  - 真正负责维护连接的，则是 Informer 所使用的 Reflector 包.Reflector 使用的是一种叫作 ListAndWatch 方法，来“获取”并“监听”这些 Network 对象实例的变化
+  - 在 ListAndWatch 机制下，一旦 APIServer 端有新的 Network 实例被创建、删除或者更新，Reflector 都会收到“事件通知”。这时，该事件及它对应的 API 对象这个组合，就被称为增量（Delta），它会被放进一个 Delta FIFO Queue（即：增量先进先出队列）中
+  - Informer 会不断地从这个 Delta FIFO Queue 里读取（Pop）增量。每拿到一个增量，Informer 就会判断这个增量里的事件类型，然后创建或者更新本地对象的缓存。这个缓存，在 Kubernetes 里一般被叫作 Store
+  - Informer 第二个职责，根据这些事件的类型，触发事先注册好 ResourceEventHandler
+- Informer，其实就是一个带有本地缓存和索引机制的、可以注册 EventHandler 的 client。通过一种叫作 ListAndWatch 的方法，把 APIServer 中的 API 对象缓存在了本地，并负责更新和维护这个缓存
+  - 通过 APIServer 的 LIST API“获取”所有最新版本的 API 对象；然后，再通过 WATCH API 来“监听”所有这些 API 对象的变化
+  - 通过监听到的事件变化，Informer 就可以实时地更新本地缓存，并且调用这些事件对应的 EventHandler 了
+  - 每经过 resyncPeriod 指定的时间，Informer 维护的本地缓存，都会使用最近一次 LIST 返回的结果强制更新一次，从而保证缓存的有效性。在 Kubernetes 中，这个缓存强制更新的操作就叫作：resync
+  - 这个定时 resync 操作，也会触发 Informer 注册的“更新”事件。但此时，这个“更新”事件对应的 Network 对象实际上并没有发生变化，即：新、旧两个 Network 对象的 ResourceVersion 是一样的。在这种情况下，Informer 就不需要对这个更新事件再做进一步的处理了
+- 参考
+  - [](https://github.com/resouer/k8s-controller-custom-resource)；Base sample for a custom controller in Kubernetes working with custom resources
+
+```sh
+# 代码生成的工作目录，也就是我们的项目路径
+ROOT_PACKAGE="github.com/resouer/k8s-controller-custom-resource"
+# API Group
+CUSTOM_RESOURCE_NAME="samplecrd"
+# API Version
+CUSTOM_RESOURCE_VERSION="v1"
+
+# 安装k8s.io/code-generator
+go get -u k8s.io/code-generator/...
+cd $GOPATH/src/k8s.io/code-generator
+
+# 执行代码自动生成，其中pkg/client是生成目标目录，pkg/apis是类型定义目录
+./generate-groups.sh all "$ROOT_PACKAGE/pkg/client" "$ROOT_PACKAGE/pkg/apis" "$CUSTOM_RESOURCE_NAME:$CUSTOM_RESOURCE_VERSION"
 ```
 
 #### 镜像仓库、Cloud Provider

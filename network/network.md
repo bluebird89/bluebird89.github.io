@@ -652,7 +652,8 @@ arp # Show neighbors
 
 ## 工具集
 
-- ping traceroute mtr 都使用的 “ICMP” 包来测试 Internet 两点之间的网络连接状况
+- lsof 列出当前系统打开的文件描述符
+- scapy:嗅探包不是爬虫框架scrapy
 
 ### ip
 
@@ -661,8 +662,8 @@ arp # Show neighbors
 	- 一些Linux发行版已经停止支持net-tools，只支持iproute2。
 	- net-tools 通过 procfs(/proc) 和 ioctl 系统调用去访问和改变内核网络配置，而iproute2则通过netlink套接字接口与内核通讯。
 	- net-tools中工具的名字比较杂乱，而iproute2则相对整齐和直观，基本是ip命令加后面的子命令
-- 有 IP 地址  eth0 这张网卡 scope： global，说明这张网卡是可以对外的，可以接收来自各个地方的包
-- lo loopback 环回接口 scope： host，说明这张网卡仅仅可以供本机相互通信，经过内核处理后直接返回，不会在任何网络中出现
+- 有 IP 地址的 eth0 网卡 scope： global 网卡可以对外接收来自各个地方的包
+- lo loopback 环回接口 scope： host 网卡仅仅可以供本机相互通信，经过内核处理后直接返回，不会在任何网络中出现
 - net_device flags 网络设备的状态标识 <BROADCAST,MULTICAST,UP,LOWER_UP>
   - UP 表示网卡处于启动的状态
   - BROADCAST 表示这个网卡有广播地址，可以发送广播包
@@ -678,7 +679,6 @@ sudo ip address add 169.254.0.1 dev eth0
 
 # 查看交互邻居
 ip neighbour
-
 
 root@test:~# ip addr
 1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default 
@@ -719,72 +719,6 @@ sudo ip route \
 	proto static
 ```
 
-### ping
-
-- verify connectivity between you and a remote system
-- 网路连通性探测:确定网络是否正确连接，以及网络连接的状况,是ICMP的最著名应用
-- 实现长时间的网络监控
-- 原理：用类型码为0的ICMP发请求，受到请求的主机则用类型码为8的ICMP回应
-- 参数
-  - -c: 执行 ping 操作的次数, 默认是一直执行, 除非被中断
-  - -D 显时间戳
-  - -i: 每次执行 ping 操作的间隔时间, 默认是 1s
-    - [-l] :定义所发送数据包的大小，默认为32字节
-    - [-n] :定义所发数据包的次数
-  - -s: 指定执行 ping 操作时发送的包的大小, 默认是 56B, 添加报文头之后, 最终发送的是 64B
-    - [-t] :表示不间断向目标IP发送数据包
-- 使用 fflush()，不然文件不会有信息，因为 awk 有缓存
-- pingpong:一种数据缓存的手段，通过 pingpong 操作可以提高数据传输的效率
-  - 什么时候需要 pingpong？在两个模块间交换数据时，上一级处理的结果不能马上被下一级所处理完成，这样上一级必须等待下一级处理完成才可以送新的数据，这样就会对性能产生很大的损失。
-  - 引入 pingpong 后我们可以不去等待下一级处理结束，而是将结果保存在 pong 路的缓存中，pong 路的数据准备好的时刻，ping 路的数据也处理完毕（下一级），然后无需等待直接处理 pong 路数据，上一级也无需等待，转而将结果存储在 ping 路。这样便提高了处理效率。
-- [gping](https://github.com/orf/gping) Ping, but with a graph
-
-```sh
-# local host是系统网络保留名，是127.0.0.1的别名，每台计算机都应该能够将该名字转换成该地址。
-# 否则，则表示主机文件（/Windows/host）中存在问题。
-ping localhost
-ping6 example.com
-
-# 如果测试成功，表明网卡、TCP/IP协议的安装、IP地址、子网掩码的设置正常
-# 如果测试不成功，表示TCP/IP的安装或设置存在有问题，表示本地配置或安装存在问题，应当对网络设备和通讯介质进行测试、检查并排除。
-ping 127.0.0.1
-
-# 如果测试成功，表明本地网络中的网卡和载体运行正确
-# 如果收到0个回送应答，那么表示子网掩码不正确或网卡配置错误或电缆系统有问题。
-ping 局域网内其他IP
-
-# 如果应答正确，表示局域网中的网关路由器正在运行并能够做出应答。
-ping 网关IP
-
-# 如果收到正确应答，表示成功的使用了缺省网关。对于拨号上网用户则表示能够成功的访问Internet（但不排除ISP的DNS会有问题）
-ping 远程IP
-
-## 对域名执行，必须先将域名转换成IP地址，通常是通过DNS服务器
-# 出现故障，则表示本机DNS服务器的IP地址配置不正确，或它所访问的DNS服务器有故障
-# 能正常运行，那么计算机进行本地和远程通信基本上就没有问题
-#
-# 命令的成功并不表示所有的网络配置都没有问题，例如，某些子网掩码错误就可能无法用这些方法检测到
-ping www.yahoo.com
-
-ping baidu.com | awk '{ print strftime("%Y.%m.%d %H:%M:%S",systime())"\t"$0; fflush() }'
-ping baidu.com | awk '{"date" | getline date; print date,$0}'
-ping baidu.com | awk -v date="$(date +"%Y-%m-%d %r")" '{print date, $0}'
-
-# 未加 fflush()，执行命令生成文件会等一会才会有信息打印到文件里
-nohup ping baidu.com | awk '{ print strftime("%Y-%m-%d %H:%M:%S",systime())"\t" $0; fflush() }' >> long_ping.txt &
-
-nohup ping baidu.com -i 1 | while read pong; do echo "$(date +"%Y-%m-%d %H:%M:%S") | $pong"; done | tee -a ping-baidu.com.log &
-```
-
-- ifconfig/ipaddr:查看服务器网卡，IP等信息
-  - CIDR 地址中包含标准的32位IP地址和有关网络前缀位数的信息。比如10.172.100.3/24，IP地址斜杠后面数字24，代表24位是网络号，后面八位为主机号
-  - 使用IP地址和子网掩码进行AND计算得到网络号
-- [tcpdump](./tcpdump.md):类似工具在windows中是wireshark
-- lsof 列出当前系统打开的文件描述符
-- dpkt定义包packet类，网络报文类型的基础类
-  - IP，ICMP等继承于dpkt class，每一个子类有一个_hdr_ 结构，此结构定义了不同报文的头部，方便取出相应的控制字段
-- scapy:嗅探包不是爬虫框架scrapy
-
 ### nslookup
 
 - query Internet name servers
@@ -792,17 +726,6 @@ nohup ping baidu.com -i 1 | while read pong; do echo "$(date +"%Y-%m-%d %H:%M:%S
 ```sh
 # Display your DNS server and target IP address
 nslookup example.com
-```
-
-### Traceroute
-
-- trace the path from one system to another, including routers in between
-- 侦测主机到目的主机之间所经路由情况的重要工具。
-- 收到到目的主机的IP后，首先给目的主机发送一个TTL=1的UDP数据包，而经过的第一个路由器收到这个数据包以后，就自动把TTL减1，而TTL变为0以后，路由器就把这个包给抛弃了，并同时产生一个主机不可达的ICMP数据报给主机。
-- 主机收到这个数据报以后再发一个TTL=2的UDP数据报给目的主机，然后刺激第二个路由器给主机发ICMP数据 报。如此往复直到到达目的主机。这样，traceroute就拿到了所有的路由器IP
-
-```sh
-traceroute google.com
 ```
 
 ### Telnet
@@ -881,6 +804,7 @@ awk -F"|" '{print $3}' access.log | sort | uniq -c | sort -nk1 -r | head -n10
 
 ### [Tcpdump](http://www.tcpdump.org/)
 
+- [tcpdump](./tcpdump.md):类似工具在windows中是wireshark
 - 命令行中通过指定表达式输出匹配捕获到的数据包的信息
 - 采用底层库winpcap/libpcap实现，bpf过滤机制
 - Packet structure
@@ -1538,6 +1462,7 @@ nc localhost 11111 | wireshark -k -S -i -
 - [](https://www.geeksforgeeks.org/basics-computer-networking/)
 - [](https://www.tutorialspoint.com/computer_fundamentals/computer_networking.htm)
 - [](https://www.javatpoint.com/types-of-computer-network)
+- [Packet Traveling](https://www.practicalnetworking.net/series/packet-traveling/packet-traveling/)
 - [Latency Numbers Every Programmer Should Know](https://colin-scott.github.io/personal_website/research/interactive_latency.html)
 - <http://libevent.org/>
 - [家庭网络知识整理](https://github.com/blanboom/awesome-home-networking-cn)<https://blanboom.org/2020/awesome-home-networking-cn/>

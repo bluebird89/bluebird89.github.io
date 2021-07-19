@@ -404,9 +404,10 @@ Notes
   - [CS 61A: Structure and Interpretation of Computer Programs](https://cs61a.org/)
   - [Composing Programs](http://www.composingprograms.com/)
   * [SICP-answers](https://github.com/huangz1990/SICP-answers):SICP 解题集 <http://sicp.readthedocs.org/>
+  * 
 * [Mathematics for Computer Science](https://courses.csail.mit.edu/6.042/spring17/mcs.pdf)
   - Tom Leighton’s MIT 6.042J
-* 计算机程序的概念、技术和模型 Concepts, Techniques, and Models of Computer Programming，CTMCP
+* 《计算机程序的概念、技术和模型 Concepts, Techniques, and Models of Computer Programming，CTMCP》
 * [The Elements of Computing Systems](https://www.nand2tetris.org/)
 * [计算的本质：深入剖析程序和计算机](https://www.amazon.cn/gp/product/B00PG0MM3C)
 * [Bottom Up Computer Science](https://github.com/ianw/bottomupcs) <http://www.bottomupcs.com>

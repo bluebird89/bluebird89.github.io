@@ -366,6 +366,7 @@ SELECT * FROM A FULL JOIN B ON A.book_id=B.book_id WHERE A.id IS null OR B.id IS
 * 收获，不止Oracle（第2版）
 * Readings in Database Systems
   - Joe Hellerstein’s Berkeley CS 186
+- 《设计数据密集型应用 Designing Data-Intensive Applications》DDIA
 
 ## 工具
 

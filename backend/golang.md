@@ -1605,7 +1605,7 @@ use of vendored package not allowed # vendor文件夹里面的包路径出现计
 
 ![Alt text](../../_static/go_api_example.jpg "Optional title")
 
-````sh
+```sh
     ├── admin.sh                     # 进程的start|stop|status|restart控制文件
     ├── conf                         # 配置文件统一存放目录
     │   ├── config.yaml              # 配置文件
@@ -1669,7 +1669,7 @@ use of vendored package not allowed # vendor文件夹里面的包路径出现计
         ├── golang.org
         ├── gopkg.in
         └── vendor.json
-	```
+```
 
 ## [图书](https://github.com/golang/go/wiki/Books)
 
@@ -1711,10 +1711,7 @@ use of vendored package not allowed # vendor文件夹里面的包路径出现计
 - [go-patterns](https://github.com/tmrts/go-patterns)Curated list of Go design patterns, recipes and idioms <http://tmrts.com/go-patterns>
 - [The Go Programming Language Specification](https://golang.google.cn/ref/spec)
 - [golang-developer-roadmap](https://github.com/Alikhll/golang-developer-roadmap):Roadmap to becoming a Go developer in 2019
-- [read](https://github.com/talkgo/read) About
-
-Go 学习之路：Go 开发者博客、Go 微信公众号、Go 学习资料（文档、书籍、视频）
-
+- [read](https://github.com/talkgo/read) About Go 学习之路：Go 开发者博客、Go 微信公众号、Go 学习资料（文档、书籍、视频）
 - [](https://github.com/talkgo/night) Weekly Go Online Meetup via Bilibili｜Go 夜读｜由 SIG 成员维护｜通过 bilibili 在线直播的方式分享 Go 相关的技术话题，每天大家在微信/telegram/Slack 上及时沟通交流编程技术话题 <https://talkgo.org/>
 - [gopherchina](https://github.com/gopherchina/conference)
 - [awesome-go](https://github.com/avelino/awesome-go)A curated list of awesome Go frameworks, libraries and software <https://awesome-go.com/>

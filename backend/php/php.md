@@ -387,6 +387,7 @@ Hugepagesize:       2048 kB
 * [brew-php-switcher](https://github.com/philcook/brew-php-switcher):Brew PHP switcher is a simple shell script to switch your apache and CLI quickly between major versions of PHP. If you support multiple products/projects that are built using either brand new or old legacy PHP functionality. For users of Homebrew (or brew for short) currently only
 * [php7-upgrade-tools](https://github.com/swisnl/php7-upgrade-tools):A set of tools for upgrading applications to PHP 7
     + `tasklist /fi "imagename eq nginx.exe" # 查看进程，没有查看error.log`
++ [PHP sandbox](https://phpsandbox.io/)
 
 ```sh
 /usr/local/apache2/bin/apachectl start|stop

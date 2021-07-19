@@ -218,7 +218,7 @@ def load_reference(name_or_id):
 * 优先级：local > global(用户) > system
   - 全局配置
     + `/etc/gitconfig`
-    + `~/.gitconfig`
+    + `~/.gitconfig` 
   - 系统配置：`git config --system`
   - 项目配置：`git local --system` project/.git/config   `git config`
 * alias
