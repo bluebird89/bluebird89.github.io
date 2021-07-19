@@ -67,6 +67,18 @@ date updated: '2021-07-18T01:41:48+08:00'
 	- 集线器 Hubs、中继器 Repeaters, Cables, Optical Fiber, SONET/SDN,Coaxial Cable, Twisted Pair Cable and Connectors (more)
 	- ISO2110，IEEE802
 
+- layers aims
+    OSI Layer 1 is the physical medium carrying the 1’s and 0’s across the wire
+    OSI Layer 2 is responsible for hop to hop delivery and uses MAC addresses
+    OSI Layer 3 is responsible for end to end delivery and uses IP Addresses
+    OSI Layer 4 is responsible for service to service delivery and uses Port Numbers
+- services
+- Switches facilitate communications within networks and operate at Layer 2
+- Routers facilitate communication between networks and operate at Layer 3
+- ARP uses a known IP address to resolve an unknown MAC address
+
+
+
 ![OSI 协议模型](../_static/osi.png "OSI 协议模型")
 ![OSI 七层协议模型](../_static/osi_model.png "OSI 七层协议模型")
 ![七层协议](../_static/osi_1.png "Optional title")
@@ -112,6 +124,8 @@ date updated: '2021-07-18T01:41:48+08:00'
 	- 驱动的中断处理函数是NIC驱动在OS启动时注册中断回调函数；当中断发生时，OS调用中断服务程序，然后中断服务程序向OS返回发送完成的数据包
 
 ![数据流](../_static/osi_data_flow.png "Optional title")
+![数据流](../_static/packtrav-encap-decap.gif "Optional title")
+
 
 ## application layer 应用层
 
@@ -304,19 +318,22 @@ PASS ********  # 通过 PASS 指令设置 FTP 用户密码
 
 #### 编程步骤
 
-  - 服务器端
-    - 函数 socket() 创建一个 socket
-    - 函数 setsockopt() 设置 socket 属性（可选）
-    - 函数 bind() 绑定IP地址、端口等信息到socket上
-    - 函数 listen() 开启监听
-    - 函数accept() 接收客户端连接
-    - 函数 send()和recv()，或者read()和write() 收发数据
-    - 通过函数断开连接
-    - 关闭监听
-  - 客户端
-    - 函数connect() 连接服务器
-    - 函数send()和recv()，或者read()和write()收发数据
-    - 关闭连接
+- 服务器端函数 socket() 创建一个**监听 Socket**
+- 函数 setsockopt() 设置 socket 属性（可选）
+- 函数 bind() 绑定IP地址、端口等信息到socket上
+- 函数 listen() 开启监听
+- 函数accept() 接收客户端连接
+- 客户端函数connect() 连接服务器,参数中指明要连接的 IP 地址和端口号
+- 发起三次握手。内核会给客户端分配一个临时端口。一旦握手成功，服务端的 accept 就会返回另一个 **已连接 Socket**
+	- Socket 就是一个文件流，在 Linux 中就是以文件的形式存在的。还存在文件描述符。写入和读出，也是通过文件描述符
+	- 每一个进程都有一个数据结构 task_struct，里面指向一个文件描述符数组，来列出这个进程打开的所有文件的文件描述符
+	- 文件描述符是一个整数，是这个数组的下标
+	- 数组中内容是一个指针，指向内核中所有打开文件的列表。既然是一个文件，就会有一个 inode，只不过 Socket 对应 inode 不像真正的文件系统一样，保存在硬盘上的，而是在内存中的。在这个 inode 中，指向 Socket 在内核中的 Socket 结构。
+- 函数send()和recv()，或者read()和write()收发数据
+- 客户端函数 close() 断开连接
+- 关闭监听
+
+![task_struct 结构](../_static/task_struct.png)
 
 #### 数据结构维护
 
@@ -434,21 +451,20 @@ PASS ********  # 通过 PASS 指令设置 FTP 用户密码
   - 占2字节，指出本报文段中的紧急数据的字节数
   - 指出在本报文段中紧急数据共有多少个字节(紧急数据放在本报文段数据的最前面)
 - 选项：长度可变，定义一些其他可选参数
-  - 最大报文段长度 MSS：MSS是指在TCP连接建立时，收发双发协商的通信时每一个报文段所能承载的数据字段的最大长度（并不是TCP报文段的最大长度，而是：MSS=TCP报文段长度-TCP首部长度），单位为字节（双方提供的MSS中的最小值，为本次连接的最大MSS值）
+  - MSS Maxitum Segment Size 最大报文段长度 =TCP报文段长度-TCP首部长度
+	- 指在TCP连接建立时，收发双发协商的通信时每一个报文段所能承载的数据字段的最大长度（并不是TCP报文段的最大长度，而是：MSS=TCP报文段长度-TCP首部长度），单位为字节（双方提供的MSS中的最小值，为本次连接的最大MSS值）（MSS选项只出现在SYN报文段中)
+	- 这个值 TCP 协议在实现的时候往往用 MTU 值代替（减去 IP数据包包头大小 20Bytes和 TCP数据段的包头 20Bytes）,所以如果用链路层以太网(MTU  1500)，MSS值往往为1460。通讯双方会根据双方提供的MSS值得最小值确定为这次连接的最大MSS值。
+	- Internet上标准 MTU（最小MTU，链路层网络为 x2.5 时）为576，如果不设置，则 MSS 默认值就为 536 个字节。很多时候，MSS值最好取512倍数
+	- 分段与重组是在传输层完成
+	- TCP 报文段长度大于MSS时，要进行分段
+		- TCP 分段原因 MSS，IP 分片原因 MTU
+		- 采用TCP协议进行数据传输是不会造成IP分片的，因为一旦TCP数据过大，超过了MSS，传输层就会对TCP包进行分段。 由于一直有MSS<=MTU，IP层对于TCP的分段数据就不用再分片了
   - 窗口扩大选项
   - 时间戳选项
   - 选择确认选项
   - Len 消息长度
 	  - 指数据报文段整个 TCP报文 = Header + packSize,所以这个消息长度就是指要传送的数据包总共长度，也就是 HTTP报文的大小
-  - MSS 最大报文段长度 =TCP报文段长度-TCP首部长度
-	- TCP 数据包每次能够传输的最大数据分段
-	- 为达到最佳传输效能，TCP 协议在建立连接的时候通常要协商双方 MSS 值，每一方都有用于通告它期望接收的MSS选项（MSS选项只出现在SYN报文段中).
-	- 这个值 TCP 协议在实现的时候往往用 MTU 值代替（减去 IP数据包包头大小 20Bytes和 TCP数据段的包头 20Bytes）,所以如果用链路层以太网(MTU  1500)，MSS值往往为1460
-	- Internet上标准 MTU（最小MTU，链路层网络为 x2.5 时）为576，如果不设置，则 MSS 默认值就为 536 个字节。很多时候，MSS值最好取512倍数
-	- 分段与重组是在传输层完成
-	- TCP报文段长度大于MSS时，要进行分段
-		- TCP 分段原因 MSS，IP 分片原因 MTU
-		- 由于一直有MSS<=MTU，分段后每一段TCP报文段再加上IP首部后长度不可能超过MTU，因此也就不需要在网络层进行IP分片了。因此TCP报文段很少会发生IP分片情况
+	
 
 ![TCP头格式](../_static/TCP-Header-01.jpg "TCP头格式")
 
@@ -602,6 +618,7 @@ curl www.linkedin.com
 		- NextByteExpected|RCV.NXT 一二部分分界线，第二部分第一个字节。指针指向期望从发送方发送来的下一个数据字节的序列号，
 		- 二三部分分界线  LastByteRead + MaxRcvBuffer RCV.NXT + RCV.WND 
 	- `AdvertisedWindow=MaxRcvBuffer-((NextByteExpected-1)-LastByteRead)`
+	- 接收端的窗口的起始点是下一个要接收并且 ACK 的包，即便后来的包都到了，放在缓存里面，窗口也不能右移，因为 TCP 的 ACK 机制是基于序列号的累计应答，一旦 ACK 了一个序列号，就说明前面的都到了，所以只要前面的没到，后面的到了也不能 ACK，就会导致后面的到了，也有可能超时重传，浪费带宽。
 - 管理两个节点之间数据传输速率的过程，防止快速发送方致使慢速接收方缓冲区溢出。为接收机提供一种控制传输速度的机制，这样接收节点就不会被来自发送节点的数据淹没
 - 滑动窗口 rwnd 是怕发送方把接收方缓存塞满，而拥塞窗口 cwnd，是怕把网络塞满
  
@@ -1000,18 +1017,18 @@ netstat -n | awk '/^tcp/ {++S[$NF]} END {for(a in S) print a, S[a]}'
   - 实时游戏（自定义重传策略，能够把丢包产生的延迟降到最低，尽量减少网络问题对游戏性造成的影响）
   
 #### 编程步骤
+
   - 服务器端
-    - 创建一个socket，用函数socket()
-    - 设置socket属性，用函数setsockopt(),可选
-    - 绑定IP地址、端口等信息到socket上，用函数bind()
-    - 循环接收数据，用函数recvfrom()
+    - socket() 创建socket
+    - setsockopt() 设置socket属性，可选
+    - bind() 绑定IP地址、端口等信息到socket上
+    - recvfrom() 循环接收数据,传入 IP 地址和端口
     - 关闭网络连接
-  - 客户端：
-    - 创建一个socket，用函数socket()
-    - 设置socket属性，用函数setsockopt() 可选
-    - 绑定IP地址、端口等信息到socket上，用函数bind() 可选
-    - 设置对方的IP地址和端口等属性
-    - 发送数据，用函数sendto()
+  - 客户端
+    - socket() 创建socket
+    - setsockopt() 设置socket属性，可选
+    - bind() 绑定IP地址、端口等信息到socket上
+    - sendto()发送数据，传入 IP 地址和端口
     - 关闭网络连接
 
 #### 特点
@@ -1089,11 +1106,59 @@ netstat -n | awk '/^tcp/ {++S[$NF]} END {for(a in S) print a, S[a]}'
 
 ![TCP与UDP对比](../_static/TCPvsUDP.png)
 
+### Socket
+
+- SOCK_DGRAM 类型
+	- 只有一个接收缓冲区，而不存在发送缓冲区。数据的发送是直接进行的，而不管对端是否能够正常接收，也不管对端接收缓冲区是否充满。
+	- 由于UDP是没有流量控制的，发送端可以很容易地就淹没接收者（更慢），导致接收方UDP丢弃数据报。
+	- UDP报文并不保证顺序，所以接收缓冲区里的报文需要手动排序（如有必要）
+	- UDP并不需要手动拆包——面向数据报的报文，并不会在缓冲区中自动合并
+- TCP socket
+	- 内核中都有一个发送缓冲区和一个接收缓冲区——TCP的全双工工作模式以及TCP的滑动窗口就是依赖这两个独立的buufer以及buffer的填充状态。
+	- 对端发送过来数据，内核会存入接收缓冲区。缓冲区数据会一直保留直到应用层 read() 取走数据，在此过程中，TCP/IP协议栈继续执行，不断的将新的报文数据填充到接收缓冲区后面，直到填满为止。
+	- 接下来发生的动作：通知对端TCP协议中的窗口关闭。这个便是滑动窗口的实现，用以保证TCP套接口接收缓冲区不会溢出，从而保证了TCP是可靠传输。因为对方不允许发出超过所通告窗口大小的数据。 这就是TCP的流量控制，如果对方无视窗口大小而发出了超过窗口大小的数据，则接收方TCP将丢弃它。
+- 最大连接数
+	- 通过 ulimit 配置文件描述符的数目
+	- 内存
+- C10K：一台机器要维护 1 万个连接，就要创建 1 万个进程或者线程，那么操作系统是无法承受的
+
+#### 多进程
+
+- 创建子进程使用 fork 函数。在父进程的基础上完全拷贝一个子进程。
+- 在 Linux 内核中，会复制文件描述符的列表，也会复制内存空间，还会复制一条记录当前执行到了哪一行程序的进程。
+- 复制完毕之后，父进程和子进程都会记录当前刚刚执行完 fork。这两个进程刚复制完的时候，几乎一模一样，只是根据 fork 的返回值来区分到底是父进程，还是子进程。
+- 如果返回值是 0，则是子进程；如果返回值是其他的整数，就是父进程。
+- 因而父进程刚才因为 accept 创建的已连接 Socket 也是一个文件描述符，同样也会被子进程获得。子进程就可以通过这个已连接 Socket 和客户端进行互通了，当通信完毕之后，就可以退出进程，
+- 那父进程如何知道子进程干完了项目，fork 返回的时候，如果是整数就是父进程,这个整数就是子进程的 ID，父进程可以通过这个 ID 查看子进程是否完成项目，是否需要退出。
+
+![进程复制过程](../_static/fork_datastructure.jpg)
+
+#### 多线程
+
+- 通过 pthread_create 创建一个线程，也是调用 do_fork。不同的是，虽然新的线程在 task 列表会新创建一项，但是很多资源，例如文件描述符列表、进程空间，还是共享的，只不过多了一个引用而已
+- 新的线程也可以通过已连接 Socket 处理请求，从而达到并发处理的目的。
+
+![进程生成过程](../_static/proccess_datastructure.png)
+
+#### IO 多路复用
+
+- 一个线程维护多个 Socket，所有的Socket 都放在一个文件描述符集合 fd_set 中
+- 调用 select 函数来监听文件描述符集合是否有变化
+	- 一旦有变化，就会依次查看每个文件描述符。
+	- 发生变化的文件描述符在 fd_set 对应的位都设为 1，表示 Socket 可读或者可写，从而可以进行读写操作
+	- 然后再调用 select，接着盯着下一轮的变化。
+	- 同时盯的 Socket 数量由 FD_SETSIZE 限制
+- 函数 epoll 在内核中实现不是通过轮询方式，而是通过注册 callback 函数方式，当某个文件描述符发送变化的时候，就会主动通知
+	- epoll_create 创建一个 epoll 对象，也是一个文件，也对应一个文件描述符，同样也对应着打开文件列表中的一项。在这项里面有一个红黑树，在红黑树里，要保存这个 epoll 要监听的所有 Socket。
+	- 当 epoll_ctl 添加一个 Socket 的时候，其实是加入这个红黑树，同时红黑树里面的节点指向一个结构，将这个结构挂在被监听的 Socket 的事件列表中。
+	- 当一个 Socket 来了一个事件的时候，可以从这个列表中得到 epoll 对象，并调用 call back 通知它。这种通知方式使得监听的 Socket 数据增加的时候，效率不会大幅度降低，能够同时监听的 Socket 的数目也非常的多了
+	- 上限就为系统定义的、进程打开的最大文件描述符个数。因而，epoll 被称为解决 C10K 问题的利器。
+
 ### 4层交换机 Layer 4 switching
 
-### 状态防火墙（stateful firewall）
+### 状态防火墙 stateful firewall
 
-## Internet layer 网络层
+## Network layer 网络层
 
 - IP 负责将包发送至接受者
 - 路由机制（routing）:每个网卡都有自己固定的 MAC 地址，当这个网卡接入到不同的网络，每次都可以再分配不同的“网络地址”。通过“网络地址”可以看出这个网卡属于哪个网络
@@ -1669,7 +1734,7 @@ traceroute google.com
 
 - 用于无线网络的交换机，用来接入无线终端，是无线网络中的核心设备
 
-## data link 数据链路层
+## Data Link 数据链路层
 
 - 信息打包：把“比特流”打包成更大的一坨，以方便更上层的协议进行处理
 - 差错控制
@@ -1701,8 +1766,17 @@ traceroute google.com
 
 #### 最大传输单元 MTU
 
-- 以太网规定正文部分不允许超过 1500 个字节。正文里面有 IP 的头、TCP 的头、HTTP 的头。如果放不下，就需要分片来传输。
-- 1500 个字节 大小是不包含二层头部和尾部的，MTU 1500表示二层MAC帧大小不超过1518. MAC 头14 字节，尾4字节
+- 指的是链路层数据区,不包括链路层的首部和尾部的18个字节
+- 以太网规定正文部分不允许超过 1500 个字节。正文里面有 IP 的头、TCP 的头、HTTP 的头。是网络层IP数据报的长度限制 
+	- MTU 1500表示二层MAC帧大小不超过1518,MAC 头14 字节，尾4字节
+- IP数据报的首部为20字节，所以IP数据报的数据区长度最大为1480字
+	- IP数据报大于1500字节，发送方IP层需要分片（fragmentation）
+- 1480字节用来放TCP传来的TCP报文段或UDP传来的UDP数据报的
+	- UDP数据报首部8字节，UDP数据报的数据区最大长度 1472字节
+	- IP分片过程看起来透明的，对于TCP协议来说，**但有一个缺陷：即使只丢失一片数据也要重新传整个数据报**
+	- 当来自TCP报文段的某一片丢失后，TCP在超时后会重发整个TCP报文段，该报文段对应于一份IP数据报（而不是一个分片），没有办法只重传数据报中的一个数据分片。
+	- 由于UDP的特性，当某一片数据传送中丢失时。接收方将无法重组报文，故而导致整个UDP报文的丢弃。因此，在局域网环境下，一般建议将UDP数据包控制在1472byte以下为宜
+- 假定MTU为1500来发送数据，而途经某个网络的MTU值小于1500字节，系统将会使用一系列的机制来调整MTU值，使数据报能够顺利到达目的地，这样就会做许多不必要的操作。鉴于Internet上的标准MTU值为576字节，建议在进行Internet的UDP编程时，将UDP的数据长度控件在576-8-20=548字节以内
 
 #### qdisc  queueing discipline 排队规则
 
@@ -1862,6 +1936,7 @@ traceroute google.com
 - 以太网一开始是总线型的，是因为那时的以太网交换机太昂贵了，而无源的总线结构要廉价得多。
 - 以太网各帧之间的发送有一定间隙，因此帧不需要结束定界符。
 - 虽然以太网交换机不适用CSMA/CD，但是其数据帧依然使用以太网帧，因此依然叫以太网
+- 以太网（Ethernet）数据帧的长度必须在46-1500字节之间，这是由以太网的物理特性决定的
 
 ### VLAN 虚拟局域网
 
